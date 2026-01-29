@@ -1,0 +1,294 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Message from {{ message.name }}{% endblock %}
+
+{% block page_title %}Message from {{ message.name }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'contact_message_list' %}">Messages</a></li>
+<li class="breadcrumb-item active">{{ message.name }}</li>
+{% endblock %}
+
+{% block page_actions %}
+<div class="btn-group" role="group">
+    <a href="mailto:{{ message.email }}?subject=Re: {{ message.subject }}" class="btn btn-success">
+        <i class="fas fa-reply me-2"></i> Reply
+    </a>
+    {% if not message.replied %}
+    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#replyModal">
+        <i class="fas fa-check me-2"></i> Mark as Replied
+    </button>
+    {% endif %}
+    <a href="{% url 'contact_message_list' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Back to List
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Message Details -->
+    <div class="col-lg-8">
+        <div class="card dashboard-card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Message Details</h5>
+                <div>
+                    {% if not message.is_read %}
+                    <span class="badge bg-danger">Unread</span>
+                    {% else %}
+                    <span class="badge bg-success">Read</span>
+                    {% endif %}
+                    
+                    {% if message.replied %}
+                    <span class="badge bg-info ms-2">Replied</span>
+                    {% else %}
+                    <span class="badge bg-warning ms-2">Pending Reply</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="mb-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="avatar me-3">
+                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 24px;">
+                                {{ message.name|first|upper }}
+                            </div>
+                        </div>
+                        <div>
+                            <h4 class="mb-1">{{ message.name }}</h4>
+                            <div class="text-muted">
+                                <i class="fas fa-envelope me-1"></i> {{ message.email }}
+                                {% if message.phone %}
+                                <span class="ms-3"><i class="fas fa-phone me-1"></i> {{ message.phone }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ message.subject|default:"No Subject" }}</h5>
+                            <hr>
+                            <div class="message-content">
+                                {{ message.message|linebreaks }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Reply Notes -->
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-4">
+                        <label class="form-label">Reply Notes</label>
+                        <textarea name="reply_notes" class="form-control" rows="6" placeholder="Enter reply notes or conversation details...">{{ message.reply_notes|default:'' }}</textarea>
+                        <div class="form-text">These notes are for internal use only and won't be sent to the sender.</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'contact_message_list' %}" class="btn btn-secondary">Back to List</a>
+                        <div>
+                            {% if not message.replied %}
+                            <button type="submit" name="mark_replied" class="btn btn-success">
+                                <i class="fas fa-check me-2"></i> Mark as Replied
+                            </button>
+                            {% endif %}
+                            <button type="submit" class="btn btn-primary">Save Notes</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+        <!-- Sender Information -->
+        <div class="card dashboard-card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Sender Information</h5>
+            </div>
+            <div class="card-body">
+                <dl class="mb-0">
+                    <dt>Name:</dt>
+                    <dd>{{ message.name }}</dd>
+                    
+                    <dt>Email:</dt>
+                    <dd><a href="mailto:{{ message.email }}">{{ message.email }}</a></dd>
+                    
+                    {% if message.phone %}
+                    <dt>Phone:</dt>
+                    <dd><a href="tel:{{ message.phone }}">{{ message.phone }}</a></dd>
+                    {% endif %}
+                    
+                    {% if message.company %}
+                    <dt>Company:</dt>
+                    <dd>{{ message.company }}</dd>
+                    {% endif %}
+                    
+                    <dt>Message Type:</dt>
+                    <dd>{{ message.get_message_type_display }}</dd>
+                </dl>
+            </div>
+        </div>
+        
+        <!-- Message Metadata -->
+        <div class="card dashboard-card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Message Metadata</h5>
+            </div>
+            <div class="card-body">
+                <dl class="mb-0">
+                    <dt>Received:</dt>
+                    <dd>{{ message.created_at|date:"F d, Y H:i" }}</dd>
+                    
+                    <dt>Read On:</dt>
+                    <dd>{{ message.read_at|date:"F d, Y H:i"|default:"Not read yet" }}</dd>
+                    
+                    <dt>Replied On:</dt>
+                    <dd>{{ message.replied_at|date:"F d, Y H:i"|default:"Not replied yet" }}</dd>
+                    
+                    <dt>IP Address:</dt>
+                    <dd>{{ message.ip_address|default:"N/A" }}</dd>
+                    
+                    <dt>User Agent:</dt>
+                    <dd>
+                        <small class="text-muted">{{ message.user_agent|truncatechars:50|default:"Unknown" }}</small>
+                    </dd>
+                    
+                    <dt>Referrer:</dt>
+                    <dd>
+                        <small class="text-muted">{{ message.referrer_url|truncatechars:50|default:"Direct" }}</small>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="mailto:{{ message.email }}?subject=Re: {{ message.subject }}" class="btn btn-success">
+                        <i class="fas fa-reply me-2"></i> Reply via Email
+                    </a>
+                    
+                    {% if not message.is_read %}
+                    <form method="POST" class="d-grid">
+                        {% csrf_token %}
+                        <button type="submit" name="mark_read" class="btn btn-primary">
+                            <i class="fas fa-check me-2"></i> Mark as Read
+                        </button>
+                    </form>
+                    {% endif %}
+                    
+                    {% if not message.replied %}
+                    <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#replyModal">
+                        <i class="fas fa-check-double me-2"></i> Mark as Replied
+                    </button>
+                    {% endif %}
+                    
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="fas fa-trash me-2"></i> Delete Message
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reply Modal -->
+<div class="modal fade" id="replyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Mark as Replied</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>Are you sure you want to mark this message as replied?</p>
+                    <div class="mb-3">
+                        <label class="form-label">Reply Method</label>
+                        <select name="reply_method" class="form-select">
+                            <option value="email">Email</option>
+                            <option value="phone">Phone Call</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Reply Summary</label>
+                        <textarea name="reply_summary" class="form-control" rows="3" placeholder="Brief summary of your reply..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="mark_replied" class="btn btn-primary">Mark as Replied</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this message from <strong>{{ message.name }}</strong>?</p>
+                <p class="text-danger">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" name="delete" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.message-content {
+    line-height: 1.6;
+    font-size: 1.05em;
+}
+
+.message-content pre {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #dee2e6;
+    overflow-x: auto;
+}
+
+.avatar {
+    flex-shrink: 0;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Auto-focus reply notes textarea
+    $('textarea[name="reply_notes"]').focus();
+    
+    // Handle mark as read on page load if message is unread
+    if (!{{ message.is_read|yesno:"true,false" }}) {
+        // Already marked as read by the view
+    }
+});
+</script>
+{% endblock %}

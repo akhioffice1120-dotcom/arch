@@ -1,0 +1,727 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Insights & Blog | Arch Design & Development{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Blog Page Styles */
+    .blog-hero {
+        background: linear-gradient(135deg, rgba(15, 44, 89, 0.9), rgba(28, 60, 116, 0.9)),
+                    url('{% static "images/blog-hero.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        min-height: 50vh;
+        display: flex;
+        align-items: center;
+        color: white;
+    }
+    
+    /* Blog Grid */
+    .blog-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 30px;
+        margin-bottom: 50px;
+    }
+    
+    .blog-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        height: 100%;
+    }
+    
+    .blog-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .blog-image {
+        height: 220px;
+        width: 100%;
+        object-fit: cover;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .blog-card:hover .blog-image {
+        transform: scale(1.05);
+    }
+    
+    .blog-content {
+        padding: 25px;
+    }
+    
+    .blog-meta {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+    }
+    
+    .blog-meta span {
+        margin-right: 15px;
+        display: flex;
+        align-items: center;
+    }
+    
+    .blog-meta i {
+        margin-right: 5px;
+        color: var(--accent-color);
+    }
+    
+    .blog-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin-bottom: 15px;
+        line-height: 1.4;
+    }
+    
+    .blog-excerpt {
+        color: var(--text-muted);
+        margin-bottom: 20px;
+        line-height: 1.6;
+    }
+    
+    .blog-read-more {
+        color: var(--primary-color);
+        font-weight: 600;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: var(--transition);
+    }
+    
+    .blog-read-more:hover {
+        color: var(--accent-color);
+    }
+    
+    /* Blog Sidebar */
+    .blog-sidebar {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 30px;
+        box-shadow: var(--shadow-md);
+        position: sticky;
+        top: 100px;
+    }
+    
+    .sidebar-widget {
+        margin-bottom: 30px;
+    }
+    
+    .widget-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--light-accent);
+        color: var(--primary-color);
+    }
+    
+    .category-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .category-item {
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        transition: var(--transition);
+    }
+    
+    .category-item:last-child {
+        border-bottom: none;
+    }
+    
+    .category-item:hover {
+        padding-left: 10px;
+    }
+    
+    .category-item a {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--text-dark);
+        text-decoration: none;
+    }
+    
+    .category-item a:hover {
+        color: var(--primary-color);
+    }
+    
+    .category-count {
+        background: var(--light-accent);
+        color: var(--primary-color);
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .recent-post {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .recent-post:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
+        border-bottom: none;
+    }
+    
+    .recent-post-image {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 8px;
+        margin-right: 15px;
+    }
+    
+    .recent-post-content h6 {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin-bottom: 5px;
+        line-height: 1.4;
+    }
+    
+    .recent-post-date {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+    
+    .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .tag {
+        display: inline-block;
+        padding: 6px 15px;
+        background: var(--light-accent);
+        color: var(--primary-color);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: var(--transition);
+        text-decoration: none;
+    }
+    
+    .tag:hover {
+        background: var(--primary-color);
+        color: white;
+    }
+    
+    /* Search Widget */
+    .search-widget {
+        position: relative;
+    }
+    
+    .search-input {
+        width: 100%;
+        padding: 12px 20px;
+        border: 2px solid var(--gray-light);
+        border-radius: var(--border-radius);
+        font-size: 0.95rem;
+        transition: var(--transition);
+    }
+    
+    .search-input:focus {
+        border-color: var(--primary-color);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(15, 44, 89, 0.1);
+    }
+    
+    .search-button {
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 8px 20px;
+        transition: var(--transition);
+    }
+    
+    .search-button:hover {
+        background: var(--secondary-color);
+    }
+    
+    /* Newsletter Widget */
+    .newsletter-form {
+        margin-top: 15px;
+    }
+    
+    .newsletter-input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 2px solid var(--gray-light);
+        border-radius: 8px;
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+    }
+    
+    .newsletter-input:focus {
+        border-color: var(--primary-color);
+        outline: none;
+    }
+    
+    /* Blog Controls */
+    .blog-controls {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 20px;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .blog-stats {
+        font-weight: 600;
+        color: var(--primary-color);
+    }
+    
+    .sort-options select {
+        padding: 10px 15px;
+        border: 2px solid var(--gray-light);
+        border-radius: 8px;
+        background: white;
+        color: var(--text-dark);
+        font-weight: 500;
+    }
+    
+    .sort-options select:focus {
+        border-color: var(--primary-color);
+        outline: none;
+    }
+    
+    /* Empty State */
+    .empty-blog {
+        text-align: center;
+        padding: 80px 20px;
+        grid-column: 1 / -1;
+    }
+    
+    .empty-icon {
+        width: 100px;
+        height: 100px;
+        background: rgba(15, 44, 89, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        color: var(--primary-color);
+        font-size: 2.5rem;
+    }
+    
+    /* Featured Post */
+    .featured-post {
+        grid-column: 1 / -1;
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-lg);
+        margin-bottom: 40px;
+        transition: var(--transition);
+    }
+    
+    .featured-post:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .featured-post-content {
+        padding: 40px;
+    }
+    
+    .featured-badge {
+        display: inline-block;
+        background: var(--accent-color);
+        color: var(--dark-color);
+        padding: 6px 20px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 20px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 992px) {
+        .blog-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+        
+        .blog-sidebar {
+            position: static;
+            margin-bottom: 30px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .blog-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .blog-controls {
+            flex-direction: column;
+            gap: 15px;
+            align-items: stretch;
+        }
+        
+        .sort-options select {
+            width: 100%;
+        }
+        
+        .featured-post-content {
+            padding: 25px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .blog-hero {
+            min-height: 40vh;
+        }
+        
+        .blog-content {
+            padding: 20px;
+        }
+        
+        .blog-image {
+            height: 180px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="blog-hero section-padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-4">Insights & Blog</h1>
+                <p class="lead mb-4">Explore the latest trends, design tips, and architectural insights from our experts.</p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="#featured" class="btn btn-warning">
+                        <i class="fas fa-star me-2"></i>Featured Articles
+                    </a>
+                    <a href="#all-posts" class="btn btn-outline-light">
+                        <i class="fas fa-newspaper me-2"></i>All Posts
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Blog Content -->
+<section class="section-padding">
+    <div class="container">
+        <div class="row">
+            <!-- Main Content -->
+            <div class="col-lg-8">
+                <!-- Blog Controls -->
+                <div class="blog-controls">
+                    <div class="blog-stats">
+                        {{ posts.paginator.count }} Articles Found
+                    </div>
+                    <div class="sort-options">
+                        <select id="sort-select">
+                            <option value="newest" {% if not selected_category and not selected_tag and not search_query %}selected{% endif %}>
+                                Newest First
+                            </option>
+                            <option value="popular" {% if not selected_category and not selected_tag and not search_query %}{% endif %}>
+                                Most Popular
+                            </option>
+                        </select>
+                    </div>
+                </div>
+                
+                <!-- Featured Posts (Optional - can be implemented in views) -->
+                {% if posts and not selected_category and not selected_tag and not search_query %}
+                <div class="featured-post" id="featured">
+                    {% with featured=posts.0 %}
+                    <img src="{{ featured.featured_image.url }}" 
+                         alt="{{ featured.title }}" 
+                         class="blog-image w-100">
+                    <div class="featured-post-content">
+                        <span class="featured-badge">Featured Article</span>
+                        <h2 class="fw-bold mb-3">{{ featured.title }}</h2>
+                        <div class="blog-meta mb-4">
+                            <span><i class="fas fa-calendar-alt"></i> {{ featured.published_date|date:"F d, Y" }}</span>
+                            <span><i class="fas fa-eye"></i> {{ featured.views_count }} views</span>
+                            <span><i class="fas fa-comments"></i> {{ featured.comment_count }} comments</span>
+                        </div>
+                        <p class="blog-excerpt">{{ featured.excerpt|truncatechars:250 }}</p>
+                        <a href="{% url 'blog_detail' featured.slug %}" class="blog-read-more">
+                            Read Full Article <i class="fas fa-arrow-right ms-2"></i>
+                        </a>
+                    </div>
+                    {% endwith %}
+                </div>
+                {% endif %}
+                
+                <!-- Blog Grid -->
+                <div class="blog-grid" id="all-posts">
+                    {% if posts %}
+                        {% for post in posts %}
+                        {% if not forloop.first or selected_category or selected_tag or search_query %}
+                        <div class="blog-card">
+                            <a href="{% url 'blog_detail' post.slug %}">
+                                <img src="{{ post.featured_image.url }}" 
+                                     alt="{{ post.title }}" 
+                                     class="blog-image">
+                            </a>
+                            <div class="blog-content">
+                                <div class="blog-meta">
+                                    <span><i class="fas fa-calendar-alt"></i> {{ post.published_date|date:"M d, Y" }}</span>
+                                    <span><i class="fas fa-eye"></i> {{ post.views_count }}</span>
+                                </div>
+                                <h3 class="blog-title">
+                                    <a href="{% url 'blog_detail' post.slug %}" class="text-decoration-none text-dark">
+                                        {{ post.title }}
+                                    </a>
+                                </h3>
+                                <p class="blog-excerpt">{{ post.excerpt|truncatechars:150 }}</p>
+                                <a href="{% url 'blog_detail' post.slug %}" class="blog-read-more">
+                                    Read More <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    {% else %}
+                    <div class="empty-blog">
+                        <div class="empty-icon">
+                            <i class="fas fa-newspaper"></i>
+                        </div>
+                        <h3 class="fw-bold mb-3">No Articles Found</h3>
+                        <p class="lead text-muted mb-4">
+                            {% if search_query %}
+                            No articles found matching "{{ search_query }}". Try different search terms.
+                            {% elif selected_category %}
+                            No articles found in the "{{ selected_category }}" category.
+                            {% elif selected_tag %}
+                            No articles found with tag "{{ selected_tag }}".
+                            {% else %}
+                            No articles available yet. Check back soon!
+                            {% endif %}
+                        </p>
+                        {% if search_query or selected_category or selected_tag %}
+                        <a href="{% url 'blog' %}" class="btn btn-primary">
+                            <i class="fas fa-redo me-2"></i>View All Articles
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if posts.has_other_pages %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if posts.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ posts.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in posts.paginator.page_range %}
+                            {% if posts.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > posts.number|add:'-3' and num < posts.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                    {{ num }}
+                                </a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if posts.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ posts.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_tag %}&tag={{ selected_tag }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+            
+            <!-- Sidebar -->
+            <div class="col-lg-4">
+                <div class="blog-sidebar">
+                    <!-- Search Widget -->
+                    <div class="sidebar-widget search-widget">
+                        <h5 class="widget-title">Search Articles</h5>
+                        <form method="get" action="{% url 'blog' %}">
+                            <input type="text" 
+                                   name="search" 
+                                   placeholder="Search articles..." 
+                                   class="search-input"
+                                   value="{{ search_query }}">
+                            <button type="submit" class="search-button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Categories Widget -->
+                    <div class="sidebar-widget">
+                        <h5 class="widget-title">Categories</h5>
+                        <ul class="category-list">
+                            <li class="category-item {% if not selected_category %}active{% endif %}">
+                                <a href="{% url 'blog' %}">
+                                    <span>All Categories</span>
+                                    <span class="category-count">{{ posts.paginator.count }}</span>
+                                </a>
+                            </li>
+                            {% for category in categories %}
+                            <li class="category-item {% if category.name == selected_category %}active{% endif %}">
+                                <a href="?category={{ category.slug }}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                    <span>{{ category.name }}</span>
+                                    <span class="category-count">{{ category.blogpost_set.count }}</span>
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <!-- Recent Posts Widget -->
+                    <div class="sidebar-widget">
+                        <h5 class="widget-title">Recent Articles</h5>
+                        {% for post in recent_posts %}
+                        <div class="recent-post">
+                            <a href="{% url 'blog_detail' post.slug %}">
+                                <img src="{{ post.featured_image.url }}" 
+                                     alt="{{ post.title }}" 
+                                     class="recent-post-image">
+                            </a>
+                            <div class="recent-post-content">
+                                <h6>
+                                    <a href="{% url 'blog_detail' post.slug %}" class="text-decoration-none text-dark">
+                                        {{ post.title|truncatechars:60 }}
+                                    </a>
+                                </h6>
+                                <div class="recent-post-date">{{ post.published_date|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Popular Posts Widget -->
+                    <div class="sidebar-widget">
+                        <h5 class="widget-title">Popular Articles</h5>
+                        {% for post in popular_posts %}
+                        <div class="recent-post">
+                            <a href="{% url 'blog_detail' post.slug %}">
+                                <img src="{{ post.featured_image.url }}" 
+                                     alt="{{ post.title }}" 
+                                     class="recent-post-image">
+                            </a>
+                            <div class="recent-post-content">
+                                <h6>
+                                    <a href="{% url 'blog_detail' post.slug %}" class="text-decoration-none text-dark">
+                                        {{ post.title|truncatechars:60 }}
+                                    </a>
+                                </h6>
+                                <div class="recent-post-date">
+                                    <i class="fas fa-eye me-1"></i> {{ post.views_count }} views
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Newsletter Widget -->
+                    <div class="sidebar-widget">
+                        <h5 class="widget-title">Subscribe to Newsletter</h5>
+                        <p class="text-muted mb-3">Get the latest design insights and tips delivered to your inbox.</p>
+                        <form class="newsletter-form">
+                            <input type="email" 
+                                   placeholder="Your email address" 
+                                   class="newsletter-input" 
+                                   required>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-paper-plane me-2"></i>Subscribe
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section-padding bg-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <h2 class="display-5 fw-bold mb-3">Stay Updated with Design Trends</h2>
+                <p class="lead mb-0">Subscribe to our newsletter for exclusive content and design inspiration.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="#newsletter" class="btn btn-light btn-lg px-5">
+                    <i class="fas fa-envelope me-2"></i>Subscribe Now
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Sort functionality
+    document.getElementById('sort-select').addEventListener('change', function() {
+        const sortValue = this.value;
+        const currentUrl = new URL(window.location.href);
+        
+        if (sortValue === 'popular') {
+            // Redirect to popular posts - you might need to implement this in your views
+            window.location.href = '{% url "blog" %}?sort=popular';
+        } else {
+            // Remove sort parameter for newest
+            currentUrl.searchParams.delete('sort');
+            window.location.href = currentUrl.toString();
+        }
+    });
+    
+    // Newsletter form submission
+    document.querySelector('.newsletter-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = this.querySelector('input[type="email"]').value;
+        
+        // Here you would typically send the email to your backend
+        // For now, we'll just show a success message
+        alert('Thank you for subscribing to our newsletter!');
+        this.reset();
+    });
+    
+    // Initialize AOS for animations
+    AOS.init({
+        duration: 600,
+        once: true,
+        offset: 100
+    });
+</script>
+{% endblock %}

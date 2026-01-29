@@ -1,0 +1,738 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Testimonials | Arch Design & Development{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Testimonials Page Styles */
+    .testimonials-hero {
+        background: linear-gradient(135deg, rgba(15, 44, 89, 0.9), rgba(28, 60, 116, 0.9)),
+                    url('{% static "images/testimonials-hero.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        min-height: 50vh;
+        display: flex;
+        align-items: center;
+        color: white;
+    }
+    
+    /* Testimonial Cards */
+    .testimonial-card-detailed {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 40px;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 30px;
+        position: relative;
+        transition: var(--transition);
+        border: 2px solid transparent;
+    }
+    
+    .testimonial-card-detailed:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--accent-color);
+    }
+    
+    .testimonial-card-detailed::before {
+        content: '"';
+        font-size: 120px;
+        color: var(--accent-color);
+        opacity: 0.1;
+        position: absolute;
+        top: -40px;
+        left: 20px;
+        font-family: 'Playfair Display', serif;
+        line-height: 1;
+    }
+    
+    .testimonial-rating {
+        color: var(--accent-color);
+        margin-bottom: 20px;
+    }
+    
+    .testimonial-content {
+        font-size: 1.1rem;
+        line-height: 1.8;
+        color: var(--text-dark);
+        margin-bottom: 25px;
+        position: relative;
+        z-index: 1;
+    }
+    
+    .testimonial-author {
+        display: flex;
+        align-items: center;
+        padding-top: 20px;
+        border-top: 2px solid var(--light-accent);
+    }
+    
+    .author-avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-right: 20px;
+        border: 3px solid var(--accent-color);
+    }
+    
+    .author-info h5 {
+        margin-bottom: 5px;
+    }
+    
+    .author-designation {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+    
+    .project-info {
+        display: inline-block;
+        background: var(--light-accent);
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        margin-top: 10px;
+    }
+    
+    /* Filter Sidebar */
+    .filter-sidebar {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 25px;
+        box-shadow: var(--shadow-md);
+        position: sticky;
+        top: 100px;
+    }
+    
+    .filter-group {
+        margin-bottom: 30px;
+    }
+    
+    .filter-title {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--light-accent);
+    }
+    
+    .filter-checkbox {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 8px;
+        transition: var(--transition);
+    }
+    
+    .filter-checkbox:hover {
+        background: rgba(15, 44, 89, 0.05);
+    }
+    
+    .filter-checkbox input {
+        margin-right: 10px;
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 2px solid var(--primary-color);
+    }
+    
+    .filter-checkbox span {
+        font-weight: 500;
+        color: var(--text-dark);
+    }
+    
+    /* Statistics */
+    .testimonial-stats {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: var(--border-radius);
+        padding: 40px;
+        color: white;
+        text-align: center;
+        margin-bottom: 40px;
+    }
+    
+    .stat-number {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        line-height: 1;
+    }
+    
+    .stat-label {
+        font-size: 1rem;
+        opacity: 0.9;
+    }
+    
+    /* Empty State */
+    .empty-testimonials {
+        text-align: center;
+        padding: 80px 20px;
+    }
+    
+    .empty-icon {
+        width: 100px;
+        height: 100px;
+        background: rgba(15, 44, 89, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        color: var(--primary-color);
+        font-size: 2.5rem;
+    }
+    
+    /* Testimonial Form */
+    .testimonial-form {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 40px;
+        box-shadow: var(--shadow-lg);
+        margin-top: 50px;
+        border: 2px solid var(--accent-color);
+    }
+    
+    .form-title {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+    
+    .form-title .badge {
+        font-size: 0.9rem;
+        padding: 8px 20px;
+        margin-bottom: 15px;
+    }
+    
+    .rating-input {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .rating-input input {
+        display: none;
+    }
+    
+    .rating-input label {
+        font-size: 2rem;
+        color: var(--gray-light);
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    
+    .rating-input input:checked ~ label,
+    .rating-input label:hover,
+    .rating-input label:hover ~ label {
+        color: var(--accent-color);
+    }
+    
+    /* Testimonial Grid */
+    .testimonial-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    /* Responsive */
+    @media (max-width: 992px) {
+        .testimonial-grid {
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        }
+        
+        .filter-sidebar {
+            position: static;
+            margin-bottom: 30px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .testimonial-card-detailed {
+            padding: 25px;
+        }
+        
+        .testimonial-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .testimonial-author {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .author-avatar {
+            margin-right: 0;
+            margin-bottom: 15px;
+        }
+        
+        .testimonial-stats {
+            padding: 30px 20px;
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .testimonial-hero {
+            min-height: 40vh;
+        }
+        
+        .testimonial-form {
+            padding: 25px;
+        }
+        
+        .testimonial-card-detailed::before {
+            font-size: 80px;
+            top: -20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="testimonials-hero section-padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-4">Client Testimonials</h1>
+                <p class="lead mb-4">See what our clients say about their experience working with Arch Design & Development.</p>
+                <a href="#submit-testimonial" class="btn btn-warning btn-lg">
+                    <i class="fas fa-star me-2"></i>Share Your Experience
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials Section -->
+<section class="section-padding">
+    <div class="container">
+        <!-- Statistics -->
+        <div class="testimonial-stats">
+            <div class="row">
+                <div class="col-md-3 col-6 mb-4 mb-md-0">
+                    <div class="stat-number">{{ testimonials.paginator.count }}</div>
+                    <div class="stat-label">Total Reviews</div>
+                </div>
+                <div class="col-md-3 col-6 mb-4 mb-md-0">
+                    <div class="stat-number">4.9</div>
+                    <div class="stat-label">Average Rating</div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">Client Satisfaction</div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-number">100+</div>
+                    <div class="stat-label">Repeat Clients</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="row">
+            <!-- Filter Sidebar -->
+            <div class="col-lg-3 mb-5 mb-lg-0">
+                <div class="filter-sidebar">
+                    <!-- Search -->
+                    <div class="search-bar mb-4">
+                        <input type="text" 
+                               id="testimonial-search" 
+                               placeholder="Search testimonials..."
+                               class="form-control">
+                    </div>
+                    
+                    <!-- Filter by Rating -->
+                    <div class="filter-group">
+                        <h6 class="filter-title">Filter by Rating</h6>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="rating-5" data-rating="5">
+                            <span>
+                                <span class="text-warning">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                </span>
+                                (5 stars)
+                            </span>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="rating-4" data-rating="4">
+                            <span>
+                                <span class="text-warning">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </span>
+                                (4 stars & above)
+                            </span>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="rating-3" data-rating="3">
+                            <span>
+                                <span class="text-warning">
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="fas fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                    <i class="far fa-star"></i>
+                                </span>
+                                (3 stars & above)
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Filter by Project Type -->
+                    <div class="filter-group">
+                        <h6 class="filter-title">Project Type</h6>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="type-residential">
+                            <span>Residential</span>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="type-commercial">
+                            <span>Commercial</span>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="type-interior">
+                            <span>Interior Design</span>
+                        </div>
+                        <div class="filter-checkbox">
+                            <input type="checkbox" id="type-exterior">
+                            <span>Exterior Design</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Clear Filters -->
+                    <div class="filter-group">
+                        <button id="clear-filters" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-times me-2"></i>Clear All Filters
+                        </button>
+                    </div>
+                    
+                    <!-- CTA -->
+                    <div class="filter-group">
+                        <p class="text-muted mb-3">Had a great experience with us?</p>
+                        <a href="#submit-testimonial" class="btn btn-primary w-100">
+                            <i class="fas fa-pen me-2"></i>Write a Review
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Testimonials Grid -->
+            <div class="col-lg-9">
+                {% if testimonials %}
+                <div class="testimonial-grid" id="testimonials-container">
+                    {% for testimonial in testimonials %}
+                    <div class="testimonial-card-detailed" 
+                         data-rating="{{ testimonial.rating }}"
+                         data-project-type="{{ testimonial.project_type|default:'other' }}"
+                         data-author="{{ testimonial.client_name|lower }}"
+                         data-content="{{ testimonial.review_text|lower }}">
+                        <!-- Rating -->
+                        <div class="testimonial-rating">
+                            {% for i in "12345"|make_list %}
+                                {% if forloop.counter <= testimonial.rating %}
+                                    <i class="fas fa-star"></i>
+                                {% else %}
+                                    <i class="far fa-star"></i>
+                                {% endif %}
+                            {% endfor %}
+                            <span class="ms-2 text-muted">{{ testimonial.created_at|date:"M d, Y" }}</span>
+                        </div>
+                        
+                        <!-- Content -->
+                        <p class="testimonial-content">
+                            {{ testimonial.review_text|truncatechars:300 }}
+                            {% if testimonial.review_text|length > 300 %}
+                            <a href="#" class="read-more-link" data-full-text="{{ testimonial.review_text }}">
+                                ... Read More
+                            </a>
+                            {% endif %}
+                        </p>
+                        
+                        <!-- Author -->
+                        <div class="testimonial-author">
+                            {% if testimonial.client_photo %}
+                            <img src="{{ testimonial.client_photo.url }}" 
+                                 alt="{{ testimonial.client_name }}"
+                                 class="author-avatar">
+                            {% else %}
+                            <div class="author-avatar bg-primary text-white d-flex align-items-center justify-content-center">
+                                <i class="fas fa-user fa-2x"></i>
+                            </div>
+                            {% endif %}
+                            <div class="author-info">
+                                <h5 class="fw-bold mb-1">{{ testimonial.client_name }}</h5>
+                                {% if testimonial.client_designation %}
+                                <p class="author-designation mb-2">{{ testimonial.client_designation }}</p>
+                                {% endif %}
+                                {% if testimonial.project %}
+                                <div class="project-info">
+                                    <i class="fas fa-project-diagram me-1"></i>
+                                    {{ testimonial.project.title }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="empty-testimonials">
+                    <div class="empty-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3">No Testimonials Yet</h3>
+                    <p class="lead text-muted mb-4">Be the first to share your experience with our services.</p>
+                    <a href="#submit-testimonial" class="btn btn-primary">
+                        <i class="fas fa-star me-2"></i>Write First Review
+                    </a>
+                </div>
+                {% endif %}
+                
+                <!-- Pagination -->
+                {% if testimonials.has_other_pages %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        {% if testimonials.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ testimonials.previous_page_number }}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in testimonials.paginator.page_range %}
+                            {% if testimonials.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > testimonials.number|add:'-3' and num < testimonials.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if testimonials.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ testimonials.next_page_number }}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Submit Testimonial Form -->
+        <div class="testimonial-form" id="submit-testimonial">
+            <div class="form-title">
+                <span class="badge bg-warning text-dark mb-2">Share Your Experience</span>
+                <h3 class="fw-bold mb-0">Submit Your Testimonial</h3>
+            </div>
+            
+            <form id="testimonialForm" method="post" action="{% url 'contact' %}">
+                {% csrf_token %}
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Your Name *</label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Your Email *</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Your Designation/Company</label>
+                        <input type="text" class="form-control" name="designation">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Project Type</label>
+                        <select class="form-select" name="project_type">
+                            <option value="">Select Project Type</option>
+                            <option value="residential">Residential</option>
+                            <option value="commercial">Commercial</option>
+                            <option value="interior">Interior Design</option>
+                            <option value="exterior">Exterior Design</option>
+                        </select>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Your Rating *</label>
+                        <div class="rating-input">
+                            <input type="radio" id="star5" name="rating" value="5">
+                            <label for="star5">★</label>
+                            <input type="radio" id="star4" name="rating" value="4">
+                            <label for="star4">★</label>
+                            <input type="radio" id="star3" name="rating" value="3">
+                            <label for="star3">★</label>
+                            <input type="radio" id="star2" name="rating" value="2">
+                            <label for="star2">★</label>
+                            <input type="radio" id="star1" name="rating" value="1">
+                            <label for="star1">★</label>
+                        </div>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Your Review *</label>
+                        <textarea class="form-control" name="review" rows="5" placeholder="Share your experience with our services..." required></textarea>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="consent" required>
+                            <label class="form-check-label" for="consent">
+                                I consent to having my testimonial published on this website.
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-12 text-center">
+                        <button type="submit" class="btn btn-primary btn-lg px-5">
+                            <i class="fas fa-paper-plane me-2"></i>Submit Testimonial
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section-padding bg-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <h2 class="display-5 fw-bold mb-3">Ready to Share Your Experience?</h2>
+                <p class="lead mb-0">Your feedback helps us improve and inspires others to work with us.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="#submit-testimonial" class="btn btn-light btn-lg px-5">
+                    <i class="fas fa-star me-2"></i>Write a Review
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Filter functionality
+    const searchInput = document.getElementById('testimonial-search');
+    const ratingFilters = document.querySelectorAll('input[data-rating]');
+    const typeFilters = document.querySelectorAll('input[id^="type-"]');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+    const testimonialCards = document.querySelectorAll('.testimonial-card-detailed');
+    
+    function filterTestimonials() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const selectedRatings = Array.from(ratingFilters)
+            .filter(cb => cb.checked)
+            .map(cb => parseInt(cb.dataset.rating));
+        const selectedTypes = Array.from(typeFilters)
+            .filter(cb => cb.checked)
+            .map(cb => cb.id.replace('type-', ''));
+        
+        testimonialCards.forEach(card => {
+            const rating = parseInt(card.dataset.rating);
+            const projectType = card.dataset.projectType;
+            const author = card.dataset.author;
+            const content = card.dataset.content;
+            
+            let matches = true;
+            
+            // Search filter
+            if (searchTerm && !author.includes(searchTerm) && !content.includes(searchTerm)) {
+                matches = false;
+            }
+            
+            // Rating filter
+            if (selectedRatings.length > 0) {
+                if (selectedRatings.includes(5) && rating < 5) matches = false;
+                if (selectedRatings.includes(4) && rating < 4) matches = false;
+                if (selectedRatings.includes(3) && rating < 3) matches = false;
+            }
+            
+            // Type filter
+            if (selectedTypes.length > 0 && !selectedTypes.includes(projectType)) {
+                matches = false;
+            }
+            
+            // Show/hide card
+            if (matches) {
+                card.style.display = 'block';
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, 100);
+            } else {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                setTimeout(() => {
+                    card.style.display = 'none';
+                }, 300);
+            }
+        });
+    }
+    
+    // Event listeners
+    searchInput.addEventListener('input', filterTestimonials);
+    ratingFilters.forEach(cb => cb.addEventListener('change', filterTestimonials));
+    typeFilters.forEach(cb => cb.addEventListener('change', filterTestimonials));
+    
+    clearFiltersBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        ratingFilters.forEach(cb => cb.checked = false);
+        typeFilters.forEach(cb => cb.checked = false);
+        filterTestimonials();
+    });
+    
+    // Read more functionality
+    document.querySelectorAll('.read-more-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const fullText = this.dataset.fullText;
+            const content = this.parentElement;
+            content.innerHTML = fullText + ' <a href="#" class="read-less-link">Read Less</a>';
+            
+            // Add event listener to "Read Less" link
+            content.querySelector('.read-less-link').addEventListener('click', function(e) {
+                e.preventDefault();
+                const truncated = fullText.substring(0, 300) + '...';
+                content.innerHTML = truncated + ' <a href="#" class="read-more-link" data-full-text="' + fullText + '">... Read More</a>';
+                
+                // Re-attach event listener
+                content.querySelector('.read-more-link').addEventListener('click', arguments.callee);
+            });
+        });
+    });
+    
+    // Form validation
+    document.getElementById('testimonialForm').addEventListener('submit', function(e) {
+        const rating = this.querySelector('input[name="rating"]:checked');
+        if (!rating) {
+            e.preventDefault();
+            alert('Please select a rating');
+        }
+    });
+    
+    // Initialize AOS for animations
+    AOS.init({
+        duration: 600,
+        once: true,
+        offset: 100
+    });
+</script>
+{% endblock %}

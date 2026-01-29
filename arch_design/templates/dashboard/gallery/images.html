@@ -1,0 +1,189 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Gallery Images{% endblock %}
+
+{% block page_title %}Gallery Images{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Gallery Images</li>
+{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex gap-2">
+    <a href="{% url 'gallery_image_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i> Add Image
+    </a>
+    <a href="{% url 'gallery_bulk_upload' %}" class="btn btn-outline-primary">
+        <i class="fas fa-upload me-2"></i> Bulk Upload
+    </a>
+    <a href="{% url 'gallery_category_list' %}" class="btn btn-outline-primary">
+        <i class="fas fa-tags me-2"></i> Categories
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card dashboard-card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <select name="category" class="form-select">
+                    <option value="">All Categories</option>
+                    {% for category in categories %}
+                    <option value="{{ category.id }}" {% if category_filter == category.id|stringformat:"i" %}selected{% endif %}>
+                        {{ category.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-2"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card dashboard-card">
+    <div class="card-body p-0">
+        {% if page_obj %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th width="100">Image</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Featured</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for image in page_obj %}
+                    <tr>
+                        <td>
+                            <img src="{{ image.image.url }}" alt="{{ image.title|default:'Gallery Image' }}" 
+                                 class="image-thumb" style="width: 80px; height: 60px;">
+                        </td>
+                        <td>{{ image.title|default:"Untitled" }}</td>
+                        <td>{{ image.category.name }}</td>
+                        <td>{{ image.description|truncatechars:50|default:"-" }}</td>
+                        <td>
+                            {% if image.is_featured %}
+                            <span class="badge bg-warning">Yes</span>
+                            {% else %}
+                            <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ image.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'gallery_image_edit' image.pk %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-warning toggle-featured" 
+                                        data-model="gallery" data-pk="{{ image.pk }}">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if category_filter %}&category={{ category_filter }}{% endif %}">
+                            First
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if category_filter %}&category={{ category_filter }}{% endif %}">
+                            Previous
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if category_filter %}&category={{ category_filter }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if category_filter %}&category={{ category_filter }}{% endif %}">
+                            Next
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if category_filter %}&category={{ category_filter }}{% endif %}">
+                            Last
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-images fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No images found</h5>
+            <p class="text-muted">Add images to your gallery</p>
+            <div class="d-flex justify-content-center gap-2">
+                <a href="{% url 'gallery_image_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i> Add Single Image
+                </a>
+                <a href="{% url 'gallery_bulk_upload' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-upload me-2"></i> Bulk Upload
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toggle featured status
+    $('.toggle-featured').on('click', function() {
+        const btn = $(this);
+        const model = btn.data('model');
+        const pk = btn.data('pk');
+        
+        $.ajax({
+            url: `/dashboard/ajax/toggle-featured/${model}/${pk}/`,
+            type: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    const badge = btn.closest('tr').find('.badge');
+                    if (response.is_featured) {
+                        badge.removeClass('bg-secondary').addClass('bg-warning').text('Yes');
+                    } else {
+                        badge.removeClass('bg-warning').addClass('bg-secondary').text('No');
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

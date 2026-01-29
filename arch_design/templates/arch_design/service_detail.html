@@ -1,0 +1,787 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ service.name }} | Arch Design & Development{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Service Detail Page Styles */
+    .service-hero {
+        background: linear-gradient(135deg, rgba(15, 44, 89, 0.9), rgba(28, 60, 116, 0.9)),
+                    url('{% if service.featured_image %}{{ service.featured_image.url }}{% else %}{% static "images/service-detail-bg.jpg" %}{% endif %}');
+        background-size: cover;
+        background-position: center;
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        color: white;
+        position: relative;
+    }
+    
+    .service-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to right, rgba(15, 44, 89, 0.9), rgba(15, 44, 89, 0.7));
+    }
+    
+    .hero-content {
+        position: relative;
+        z-index: 1;
+    }
+    
+    .service-icon-large {
+        width: 100px;
+        height: 100px;
+        background: linear-gradient(135deg, var(--accent-color), #F4E9D1);
+        border-radius: 25px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--dark-color);
+        font-size: 2.5rem;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow-lg);
+    }
+    
+    /* Service Content */
+    .service-content-section {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        padding: 50px;
+        box-shadow: var(--shadow-lg);
+        margin-top: -50px;
+        position: relative;
+        z-index: 2;
+    }
+    
+    @media (max-width: 768px) {
+        .service-content-section {
+            padding: 30px;
+            margin-top: -30px;
+        }
+    }
+    
+    /* Feature List */
+    .feature-list {
+        list-style: none;
+        padding: 0;
+    }
+    
+    .feature-list li {
+        padding: 15px 0;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
+        position: relative;
+        padding-left: 40px;
+    }
+    
+    .feature-list li:last-child {
+        border-bottom: none;
+    }
+    
+    .feature-list li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        width: 28px;
+        height: 28px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.9rem;
+        font-weight: bold;
+    }
+    
+    /* Process Steps */
+    .process-step-number {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: bold;
+        margin: 0 auto 20px;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .process-step {
+        text-align: center;
+        padding: 30px 20px;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+        height: 100%;
+        transition: var(--transition);
+        border: 2px solid transparent;
+    }
+    
+    .process-step:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--accent-color);
+    }
+    
+    /* Related Services & Projects */
+    .related-card {
+        background: white;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+        height: 100%;
+    }
+    
+    .related-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .related-card-img {
+        height: 200px;
+        width: 100%;
+        object-fit: cover;
+    }
+    
+    /* Service Benefits */
+    .benefit-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 30px;
+        box-shadow: var(--shadow-md);
+        text-align: center;
+        height: 100%;
+        transition: var(--transition);
+    }
+    
+    .benefit-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .benefit-icon {
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.8rem;
+        margin: 0 auto 20px;
+    }
+    
+    /* FAQ Section */
+    .faq-item {
+        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: var(--border-radius);
+        margin-bottom: 15px;
+        overflow: hidden;
+    }
+    
+    .faq-question {
+        padding: 20px;
+        background: white;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: var(--transition);
+    }
+    
+    .faq-question:hover {
+        background: rgba(15, 44, 89, 0.02);
+    }
+    
+    .faq-question h5 {
+        margin: 0;
+        font-size: 1.1rem;
+    }
+    
+    .faq-toggle {
+        color: var(--primary-color);
+        transition: var(--transition);
+    }
+    
+    .faq-question.active .faq-toggle {
+        transform: rotate(45deg);
+    }
+    
+    .faq-answer {
+        padding: 0 20px;
+        max-height: 0;
+        overflow: hidden;
+        transition: var(--transition);
+    }
+    
+    .faq-answer.show {
+        padding: 20px;
+        max-height: 500px;
+    }
+    
+    /* Inquiry Form Sticky */
+    .sticky-form {
+        position: sticky;
+        top: 100px;
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 30px;
+        box-shadow: var(--shadow-lg);
+        border: 2px solid var(--accent-color);
+    }
+    
+    .form-label {
+        font-weight: 600;
+        color: var(--text-dark);
+        margin-bottom: 8px;
+    }
+    
+    .form-control, .form-select {
+        border: 2px solid rgba(0,0,0,0.1);
+        border-radius: 10px;
+        padding: 12px 15px;
+        transition: var(--transition);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: var(--accent-color);
+        box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+    }
+    
+    /* Testimonial Slider */
+    .testimonial-slide {
+        padding: 30px;
+        background: white;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-md);
+        text-align: center;
+        margin: 10px;
+    }
+    
+    .testimonial-rating {
+        color: var(--accent-color);
+        margin-bottom: 20px;
+    }
+    
+    .testimonial-text {
+        font-style: italic;
+        color: var(--text-dark);
+        margin-bottom: 20px;
+        position: relative;
+    }
+    
+    .testimonial-text::before {
+        content: '"';
+        font-size: 4rem;
+        color: var(--accent-color);
+        opacity: 0.2;
+        position: absolute;
+        top: -20px;
+        left: -10px;
+        font-family: 'Playfair Display', serif;
+    }
+    
+    /* Statistics Banner */
+    .stats-banner {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-radius: var(--border-radius);
+        padding: 40px;
+        text-align: center;
+    }
+    
+    .stats-banner h3 {
+        color: white;
+    }
+    
+    .stats-banner .btn-warning {
+        background: var(--accent-color);
+        color: var(--dark-color);
+        border: none;
+        font-weight: 600;
+    }
+    
+    .stats-banner .btn-warning:hover {
+        background: #C9A12D;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Service Hero Section -->
+<section class="service-hero section-padding">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <div class="hero-content">
+                    <span class="badge bg-light-accent text-primary px-3 py-2 mb-3">
+                        {{ service.category.name }}
+                    </span>
+                    <h1 class="display-4 fw-bold mb-4">{{ service.name }}</h1>
+                    <p class="lead mb-4">{{ service.short_description }}</p>
+                    <div class="d-flex flex-wrap gap-3">
+                        <a href="#inquiry-form" class="btn btn-warning btn-lg px-5">
+                            <i class="fas fa-paper-plane me-2"></i>Get Quote
+                        </a>
+                        <a href="tel:{{ site_config.contact_phone|default:'+8801234567890' }}" class="btn btn-outline-light btn-lg">
+                            <i class="fas fa-phone me-2"></i>Call Now
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-4 text-center">
+                <div class="service-icon-large mx-auto">
+                    {% if service.icon %}
+                    <img src="{{ service.icon.url }}" alt="{{ service.name }}" class="img-fluid" style="max-width: 60px;">
+                    {% else %}
+                    {% if service.category.category_type == 'exterior' %}
+                    <i class="fas fa-building"></i>
+                    {% else %}
+                    <i class="fas fa-couch"></i>
+                    {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Service Content -->
+<section class="section-padding pt-0">
+    <div class="container">
+        <div class="service-content-section">
+            <div class="row">
+                <!-- Main Content -->
+                <div class="col-lg-8 mb-5 mb-lg-0">
+                    <!-- Service Description -->
+                    <div class="mb-5">
+                        <h3 class="fw-bold mb-4 text-primary">Service Overview</h3>
+                        <div class="service-description">
+                            {{ service.full_description|safe }}
+                        </div>
+                    </div>
+                    
+                    <!-- Key Features -->
+                    <div class="mb-5">
+                        <h3 class="fw-bold mb-4 text-primary">Key Features</h3>
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <ul class="feature-list">
+                                    <li>Customized design solutions tailored to your needs</li>
+                                    <li>Modern and innovative architectural concepts</li>
+                                    <li>Quality materials and construction standards</li>
+                                    <li>Timely project completion and delivery</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="feature-list">
+                                    <li>Professional project management</li>
+                                    <li>3D visualization and walkthroughs</li>
+                                    <li>Budget-friendly solutions</li>
+                                    <li>Post-completion support</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Our Process -->
+                    <div class="mb-5">
+                        <h3 class="fw-bold mb-4 text-primary">Our Process</h3>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="process-step">
+                                    <div class="process-step-number">1</div>
+                                    <h5 class="fw-bold mb-2">Consultation</h5>
+                                    <p class="text-muted mb-0">Understanding your requirements and vision</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="process-step">
+                                    <div class="process-step-number">2</div>
+                                    <h5 class="fw-bold mb-2">Design</h5>
+                                    <p class="text-muted mb-0">Creating detailed plans and 3D visualizations</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="process-step">
+                                    <div class="process-step-number">3</div>
+                                    <h5 class="fw-bold mb-2">Execution</h5>
+                                    <p class="text-muted mb-0">Professional implementation and quality control</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Related Projects -->
+                    {% if related_projects %}
+                    <div class="mb-5">
+                        <h3 class="fw-bold mb-4 text-primary">Related Projects</h3>
+                        <div class="row g-4">
+                            {% for project in related_projects %}
+                            <div class="col-md-6">
+                                <div class="related-card">
+                                    {% if project.featured_image %}
+                                    <img src="{{ project.featured_image.url }}" alt="{{ project.title }}" class="related-card-img">
+                                    {% endif %}
+                                    <div class="p-3">
+                                        <h5 class="fw-bold mb-2">{{ project.title }}</h5>
+                                        <p class="text-muted mb-2">{{ project.location }}</p>
+                                        <a href="{% url 'project_detail' project.slug %}" class="text-primary text-decoration-none">
+                                            View Project <i class="fas fa-arrow-right ms-1"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Benefits -->
+                    <div class="mb-5">
+                        <h3 class="fw-bold mb-4 text-primary">Why Choose This Service</h3>
+                        <div class="row g-4">
+                            <div class="col-md-4">
+                                <div class="benefit-card">
+                                    <div class="benefit-icon">
+                                        <i class="fas fa-medal"></i>
+                                    </div>
+                                    <h5 class="fw-bold mb-2">Expertise</h5>
+                                    <p class="text-muted mb-0">10+ years of specialized experience</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="benefit-card">
+                                    <div class="benefit-icon">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <h5 class="fw-bold mb-2">Timely Delivery</h5>
+                                    <p class="text-muted mb-0">Strict adherence to deadlines</p>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="benefit-card">
+                                    <div class="benefit-icon">
+                                        <i class="fas fa-shield-alt"></i>
+                                    </div>
+                                    <h5 class="fw-bold mb-2">Quality Assurance</h5>
+                                    <p class="text-muted mb-0">Rigorous quality checks</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- FAQ Section -->
+                    <div class="mb-5">
+                        <h3 class="fw-bold mb-4 text-primary">Frequently Asked Questions</h3>
+                        <div class="faq-accordion">
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h5>How long does this service typically take?</h5>
+                                    <span class="faq-toggle">+</span>
+                                </div>
+                                <div class="faq-answer">
+                                    <p class="mb-0">The timeline varies based on project scope and complexity. Typically, {{ service.name }} projects range from 2-6 months. We provide detailed timelines during our initial consultation.</p>
+                                </div>
+                            </div>
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h5>What is included in your service package?</h5>
+                                    <span class="faq-toggle">+</span>
+                                </div>
+                                <div class="faq-answer">
+                                    <p class="mb-0">Our service includes initial consultation, design concepts, detailed plans, 3D visualizations, material selection, project management, and post-completion support.</p>
+                                </div>
+                            </div>
+                            <div class="faq-item">
+                                <div class="faq-question">
+                                    <h5>Do you provide post-service support?</h5>
+                                    <span class="faq-toggle">+</span>
+                                </div>
+                                <div class="faq-answer">
+                                    <p class="mb-0">Yes, we offer 6 months of free post-service support to ensure your complete satisfaction with our work.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <!-- Inquiry Form -->
+                    <div id="inquiry-form" class="sticky-form">
+                        <h4 class="fw-bold mb-4 text-center">Get a Free Quote</h4>
+                        <form method="post" action="{% url 'inquiry_create' %}" class="needs-validation" novalidate>
+                            {% csrf_token %}
+                            <input type="hidden" name="specific_service" value="{{ service.id }}">
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Your Name *</label>
+                                <input type="text" class="form-control" name="name" required>
+                                <div class="invalid-feedback">Please enter your name</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Email Address *</label>
+                                <input type="email" class="form-control" name="email" required>
+                                <div class="invalid-feedback">Please enter a valid email</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Phone Number *</label>
+                                <input type="tel" class="form-control" name="phone" required>
+                                <div class="invalid-feedback">Please enter your phone number</div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Project Type</label>
+                                <select class="form-select" name="service_type">
+                                    <option value="{{ service.category.category_type }}">
+                                        {{ service.category.name }}
+                                    </option>
+                                    <option value="exterior">Exterior Design</option>
+                                    <option value="interior">Interior Design</option>
+                                    <option value="both">Both</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Budget Range</label>
+                                <select class="form-select" name="budget_range">
+                                    <option value="not_sure">Not Sure</option>
+                                    <option value="under_5">Under 5 Lakh</option>
+                                    <option value="5_10">5-10 Lakh</option>
+                                    <option value="10_20">10-20 Lakh</option>
+                                    <option value="20_50">20-50 Lakh</option>
+                                    <option value="50_above">50 Lakh+</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Project Details</label>
+                                <textarea class="form-control" name="project_description" rows="3" placeholder="Tell us about your project..."></textarea>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="urgentCheck">
+                                <label class="form-check-label" for="urgentCheck">This is urgent</label>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 py-3">
+                                <i class="fas fa-paper-plane me-2"></i>Submit Inquiry
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Service Info Card -->
+                    <div class="card border-0 shadow-sm mt-4">
+                        <div class="card-body text-center">
+                            <h5 class="fw-bold mb-3">Service Details</h5>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Category:</span>
+                                <span class="fw-semibold">{{ service.category.name }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Type:</span>
+                                <span class="fw-semibold">{{ service.category.get_category_type_display }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Featured:</span>
+                                <span class="fw-semibold">
+                                    {% if service.is_featured %}
+                                    <i class="fas fa-check text-success"></i> Yes
+                                    {% else %}
+                                    <i class="fas fa-times text-muted"></i> No
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <hr class="my-3">
+                            <p class="text-muted mb-3">
+                                <i class="fas fa-clock me-2 text-primary"></i>
+                                Estimated timeline: 2-6 months
+                            </p>
+                            <a href="tel:{{ site_config.contact_phone|default:'+8801234567890' }}" class="btn btn-outline-primary w-100">
+                                <i class="fas fa-phone me-2"></i>Call for Details
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Related Services -->
+{% if related_services %}
+<section class="section-padding bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h3 class="display-6 fw-bold mb-3">Related Services</h3>
+            <p class="lead text-muted">Explore other services in this category</p>
+        </div>
+        <div class="row g-4">
+            {% for related in related_services %}
+            <div class="col-lg-3 col-md-6">
+                <div class="card border-0 shadow-hover h-100">
+                    {% if related.icon %}
+                    <div class="text-center py-4">
+                        <img src="{{ related.icon.url }}" alt="{{ related.name }}" height="60">
+                    </div>
+                    {% endif %}
+                    <div class="card-body text-center">
+                        <h5 class="fw-bold mb-3">{{ related.name }}</h5>
+                        <p class="text-muted mb-3">{{ related.short_description|truncatechars:100 }}</p>
+                        <a href="{% url 'service_detail' related.slug %}" class="text-primary text-decoration-none">
+                            Learn More <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Statistics Banner -->
+<section class="section-padding">
+    <div class="container">
+        <div class="stats-banner">
+            <div class="row align-items-center">
+                <div class="col-lg-8 mb-4 mb-lg-0">
+                    <h3 class="fw-bold mb-3">Ready to Transform Your Space?</h3>
+                    <p class="mb-0">Get in touch with our experts for a personalized consultation</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <a href="{% url 'contact' %}" class="btn btn-warning btn-lg px-5">
+                        <i class="fas fa-comments me-2"></i>Contact Us
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Testimonials -->
+<section class="section-padding">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h3 class="display-6 fw-bold mb-3">Client Testimonials</h3>
+            <p class="lead text-muted">What our clients say about this service</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="testimonial-slide">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">
+                        "Excellent service and attention to detail. The team transformed our space exactly as we envisioned."
+                    </p>
+                    <h6 class="fw-bold mb-1">Mr. Rahman</h6>
+                    <p class="text-muted mb-0">Residential Client</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="testimonial-slide">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                    </div>
+                    <p class="testimonial-text">
+                        "Professional team that delivered beyond our expectations. Highly recommended for quality work."
+                    </p>
+                    <h6 class="fw-bold mb-1">Ms. Akhter</h6>
+                    <p class="text-muted mb-0">Commercial Client</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="testimonial-slide">
+                    <div class="testimonial-rating">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <p class="testimonial-text">
+                        "Timely delivery with exceptional quality. They understood our needs perfectly."
+                    </p>
+                    <h6 class="fw-bold mb-1">Mr. Chowdhury</h6>
+                    <p class="text-muted mb-0">Corporate Client</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // FAQ Accordion
+    document.querySelectorAll('.faq-question').forEach(item => {
+        item.addEventListener('click', () => {
+            const answer = item.nextElementSibling;
+            const isActive = item.classList.contains('active');
+            
+            // Close all FAQ items
+            document.querySelectorAll('.faq-question').forEach(q => {
+                q.classList.remove('active');
+                q.nextElementSibling.classList.remove('show');
+                q.querySelector('.faq-toggle').textContent = '+';
+            });
+            
+            // Open clicked item if it wasn't active
+            if (!isActive) {
+                item.classList.add('active');
+                answer.classList.add('show');
+                item.querySelector('.faq-toggle').textContent = '−';
+            }
+        });
+    });
+    
+    // Form Validation
+    const forms = document.querySelectorAll('.needs-validation');
+    Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+    
+    // Smooth scroll to inquiry form
+    document.querySelectorAll('a[href^="#inquiry-form"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

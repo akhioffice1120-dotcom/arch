@@ -1,0 +1,614 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Inquiry Submitted | Arch Design & Development{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Success Page Styles */
+    .success-hero {
+        background: linear-gradient(135deg, rgba(15, 44, 89, 0.9), rgba(28, 60, 116, 0.9)),
+                    url('{% static "images/success-hero.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        color: white;
+        text-align: center;
+    }
+    
+    /* Success Content */
+    .success-content {
+        text-align: center;
+        padding: 80px 20px;
+    }
+    
+    .success-icon {
+        width: 150px;
+        height: 150px;
+        background: linear-gradient(135deg, var(--accent-color), #F4E9D1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 40px;
+        color: var(--dark-color);
+        font-size: 4rem;
+        box-shadow: var(--shadow-xl);
+        animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+    
+    .success-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--primary-color);
+    }
+    
+    @media (max-width: 768px) {
+        .success-title {
+            font-size: 2.5rem;
+        }
+        
+        .success-icon {
+            width: 120px;
+            height: 120px;
+            font-size: 3rem;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .success-title {
+            font-size: 2rem;
+        }
+        
+        .success-icon {
+            width: 100px;
+            height: 100px;
+            font-size: 2.5rem;
+        }
+    }
+    
+    .success-message {
+        font-size: 1.25rem;
+        color: var(--text-muted);
+        margin-bottom: 40px;
+        max-width: 700px;
+        margin-left: auto;
+        margin-right: auto;
+        line-height: 1.6;
+    }
+    
+    /* Next Steps */
+    .next-steps {
+        background: white;
+        border-radius: var(--border-radius-lg);
+        padding: 50px;
+        box-shadow: var(--shadow-lg);
+        max-width: 900px;
+        margin: 0 auto;
+    }
+    
+    .steps-title {
+        text-align: center;
+        margin-bottom: 40px;
+        color: var(--primary-color);
+    }
+    
+    .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .step-card {
+        text-align: center;
+        padding: 30px;
+        background: var(--light-accent);
+        border-radius: var(--border-radius);
+        transition: var(--transition);
+        height: 100%;
+    }
+    
+    .step-card:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .step-number {
+        width: 60px;
+        height: 60px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0 auto 20px;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .step-title {
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: var(--text-dark);
+    }
+    
+    .step-description {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+    
+    /* Timeline */
+    .timeline-container {
+        margin-top: 50px;
+        padding-top: 50px;
+        border-top: 2px solid var(--light-accent);
+    }
+    
+    .timeline {
+        position: relative;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 30px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, var(--primary-color), var(--accent-color));
+    }
+    
+    .timeline-item {
+        position: relative;
+        padding-left: 80px;
+        margin-bottom: 40px;
+    }
+    
+    .timeline-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .timeline-dot {
+        width: 60px;
+        height: 60px;
+        background: white;
+        border: 3px solid var(--primary-color);
+        border-radius: 50%;
+        position: absolute;
+        left: 0;
+        top: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+        color: var(--primary-color);
+        font-weight: 700;
+        box-shadow: var(--shadow-md);
+    }
+    
+    .timeline-content {
+        background: white;
+        padding: 25px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .timeline-title {
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: var(--primary-color);
+    }
+    
+    /* Contact Info */
+    .contact-urgent {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: var(--border-radius);
+        padding: 40px;
+        color: white;
+        text-align: center;
+        margin-top: 50px;
+        max-width: 800px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    .urgent-title {
+        color: white;
+        margin-bottom: 20px;
+    }
+    
+    .contact-methods {
+        display: flex;
+        justify-content: center;
+        gap: 30px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+    
+    .contact-method {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px 25px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        text-decoration: none;
+        color: white;
+        transition: var(--transition);
+    }
+    
+    .contact-method:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-3px);
+    }
+    
+    .contact-method i {
+        font-size: 1.5rem;
+        color: var(--accent-color);
+    }
+    
+    /* Action Buttons */
+    .action-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 40px;
+        flex-wrap: wrap;
+    }
+    
+    .btn-success {
+        background: var(--accent-color);
+        border: 2px solid var(--accent-color);
+        color: var(--dark-color);
+        font-weight: 600;
+        padding: 15px 40px;
+        border-radius: 12px;
+        transition: var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .btn-success:hover {
+        background: #C9A12D;
+        border-color: #C9A12D;
+        color: var(--dark-color);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    .btn-outline-primary {
+        border: 2px solid var(--primary-color);
+        color: var(--primary-color);
+        font-weight: 600;
+        padding: 15px 40px;
+        border-radius: 12px;
+        transition: var(--transition);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: transparent;
+    }
+    
+    .btn-outline-primary:hover {
+        background: var(--primary-color);
+        color: white;
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .next-steps {
+            padding: 30px;
+        }
+        
+        .steps-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .timeline::before {
+            left: 20px;
+        }
+        
+        .timeline-item {
+            padding-left: 60px;
+        }
+        
+        .timeline-dot {
+            width: 40px;
+            height: 40px;
+            font-size: 1rem;
+        }
+        
+        .contact-methods {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .contact-method {
+            width: 100%;
+            justify-content: center;
+        }
+        
+        .action-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .btn-success, .btn-outline-primary {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .success-content {
+            padding: 50px 20px;
+        }
+        
+        .next-steps {
+            padding: 25px;
+        }
+        
+        .timeline-content {
+            padding: 20px;
+        }
+        
+        .contact-urgent {
+            padding: 30px 20px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="success-hero section-padding">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="success-icon">
+                    <i class="fas fa-check"></i>
+                </div>
+                <h1 class="display-4 fw-bold mb-4">Inquiry Submitted Successfully!</h1>
+                <p class="lead mb-4">Thank you for your interest in Arch Design & Development. We've received your inquiry and will contact you shortly.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Success Content -->
+<section class="section-padding">
+    <div class="container">
+        <div class="success-content">
+            <h2 class="success-title">What Happens Next?</h2>
+            <p class="success-message">
+                Your inquiry has been assigned a reference number and sent to our project management team. 
+                Here's what you can expect in the coming days.
+            </p>
+            
+            <!-- Next Steps -->
+            <div class="next-steps">
+                <h3 class="steps-title fw-bold">Our Process</h3>
+                
+                <div class="steps-grid">
+                    <div class="step-card">
+                        <div class="step-number">1</div>
+                        <h4 class="step-title">Initial Review</h4>
+                        <p class="step-description">
+                            Our team will review your project requirements and understand your vision.
+                        </p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">2</div>
+                        <h4 class="step-title">Expert Assignment</h4>
+                        <p class="step-description">
+                            We'll assign the most suitable architect/designer for your project type.
+                        </p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">3</div>
+                        <h4 class="step-title">First Contact</h4>
+                        <p class="step-description">
+                            You'll receive a call/email from us within 24 hours to discuss details.
+                        </p>
+                    </div>
+                    <div class="step-card">
+                        <div class="step-number">4</div>
+                        <h4 class="step-title">Quote Preparation</h4>
+                        <p class="step-description">
+                            We'll prepare a detailed quote based on your specific requirements.
+                        </p>
+                    </div>
+                </div>
+                
+                <!-- Timeline -->
+                <div class="timeline-container">
+                    <h4 class="fw-bold text-center mb-4">Expected Timeline</h4>
+                    
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-dot">
+                                <i class="fas fa-clock"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h5 class="timeline-title">Within 24 Hours</h5>
+                                <p class="mb-0">Initial contact from our project coordinator to confirm details.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot">
+                                <i class="fas fa-calendar-check"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h5 class="timeline-title">1-2 Business Days</h5>
+                                <p class="mb-0">Consultation call/meeting with assigned architect.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot">
+                                <i class="fas fa-file-invoice-dollar"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h5 class="timeline-title">3-5 Business Days</h5>
+                                <p class="mb-0">Detailed quote and proposal delivered.</p>
+                            </div>
+                        </div>
+                        <div class="timeline-item">
+                            <div class="timeline-dot">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                            <div class="timeline-content">
+                                <h5 class="timeline-title">1 Week</h5>
+                                <p class="mb-0">Project kickoff meeting and timeline finalization.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Urgent Contact -->
+            <div class="contact-urgent">
+                <h3 class="urgent-title fw-bold">Need Immediate Assistance?</h3>
+                <p class="mb-4">If you have urgent questions or need immediate support, contact us directly:</p>
+                
+                <div class="contact-methods">
+                    <a href="tel:{{ site_config.contact_phone|default:'+8801234567890' }}" class="contact-method">
+                        <i class="fas fa-phone"></i>
+                        <div>
+                            <div class="fw-bold">Call Us</div>
+                            <div>{{ site_config.contact_phone|default:'+880 1234 567890' }}</div>
+                        </div>
+                    </a>
+                    <a href="https://wa.me/{{ site_config.whatsapp_number|default:'8801234567890' }}" class="contact-method" target="_blank">
+                        <i class="fab fa-whatsapp"></i>
+                        <div>
+                            <div class="fw-bold">WhatsApp</div>
+                            <div>{{ site_config.whatsapp_number|default:'+880 1234 567890' }}</div>
+                        </div>
+                    </a>
+                    <a href="mailto:{{ site_config.contact_email|default:'info@archdesign.com' }}" class="contact-method">
+                        <i class="fas fa-envelope"></i>
+                        <div>
+                            <div class="fw-bold">Email Us</div>
+                            <div>{{ site_config.contact_email|default:'info@archdesign.com' }}</div>
+                        </div>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <a href="{% url 'home' %}" class="btn-success">
+                    <i class="fas fa-home me-2"></i>Back to Home
+                </a>
+                <a href="{% url 'projects' %}" class="btn-outline-primary">
+                    <i class="fas fa-eye me-2"></i>View Our Projects
+                </a>
+                <a href="{% url 'contact' %}" class="btn-outline-primary">
+                    <i class="fas fa-envelope me-2"></i>Contact Page
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section-padding bg-light">
+    <div class="container">
+        <div class="text-center">
+            <h2 class="display-5 fw-bold mb-4">While You Wait...</h2>
+            <p class="lead text-muted mb-4">Explore our portfolio to get inspired for your project.</p>
+            
+            <div class="row g-4">
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-hover h-100">
+                        <img src="{% static 'images/project-1.jpg' %}" class="card-img-top" alt="Project" height="200">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-2">Modern Villa Design</h5>
+                            <p class="text-muted mb-3">Contemporary residential architecture with clean lines.</p>
+                            <a href="{% url 'projects' %}" class="text-primary text-decoration-none">
+                                View Project <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-hover h-100">
+                        <img src="{% static 'images/project-2.jpg' %}" class="card-img-top" alt="Project" height="200">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-2">Corporate Office</h5>
+                            <p class="text-muted mb-3">Modern workspace design for maximum productivity.</p>
+                            <a href="{% url 'projects' %}" class="text-primary text-decoration-none">
+                                View Project <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="card border-0 shadow-hover h-100">
+                        <img src="{% static 'images/project-3.jpg' %}" class="card-img-top" alt="Project" height="200">
+                        <div class="card-body">
+                            <h5 class="fw-bold mb-2">Luxury Apartment</h5>
+                            <p class="text-muted mb-3">High-end interior design for premium living spaces.</p>
+                            <a href="{% url 'projects' %}" class="text-primary text-decoration-none">
+                                View Project <i class="fas fa-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Auto-redirect to home page after 30 seconds
+    setTimeout(function() {
+        // Optional: Uncomment to enable auto-redirect
+        // window.location.href = "{% url 'home' %}";
+    }, 30000);
+    
+    // Add some interactive animations
+    document.addEventListener('DOMContentLoaded', function() {
+        // Animate step cards on scroll
+        const stepCards = document.querySelectorAll('.step-card');
+        stepCards.forEach((card, index) => {
+            card.style.animationDelay = `${index * 0.1}s`;
+        });
+        
+        // Animate timeline items
+        const timelineItems = document.querySelectorAll('.timeline-item');
+        timelineItems.forEach((item, index) => {
+            item.style.animationDelay = `${index * 0.2}s`;
+        });
+        
+        // Initialize AOS for animations
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+    });
+</script>
+{% endblock %}

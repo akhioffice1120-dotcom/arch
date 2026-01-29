@@ -1,0 +1,259 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Inquiries{% endblock %}
+
+{% block page_title %}Inquiries Management{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Inquiries</li>
+{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex gap-2">
+    <div class="dropdown">
+        <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <i class="fas fa-filter me-2"></i> Filter
+        </button>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" href="?status=new">New Inquiries</a></li>
+            <li><a class="dropdown-item" href="?status=contacted">Contacted</a></li>
+            <li><a class="dropdown-item" href="?status=quoted">Quoted</a></li>
+            <li><a class="dropdown-item" href="?status=follow_up">Follow Up</a></li>
+            <li><a class="dropdown-item" href="?status=converted">Converted</a></li>
+            <li><a class="dropdown-item" href="?status=rejected">Rejected</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'inquiry_list' %}">Clear Filters</a></li>
+        </ul>
+    </div>
+    <a href="{% url 'inquiry_export' %}" class="btn btn-success">
+        <i class="fas fa-file-export me-2"></i> Export CSV
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="card dashboard-card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="new" {% if status_filter == 'new' %}selected{% endif %}>New</option>
+                    <option value="contacted" {% if status_filter == 'contacted' %}selected{% endif %}>Contacted</option>
+                    <option value="quoted" {% if status_filter == 'quoted' %}selected{% endif %}>Quoted</option>
+                    <option value="follow_up" {% if status_filter == 'follow_up' %}selected{% endif %}>Follow Up</option>
+                    <option value="converted" {% if status_filter == 'converted' %}selected{% endif %}>Converted</option>
+                    <option value="rejected" {% if status_filter == 'rejected' %}selected{% endif %}>Rejected</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Service Type</label>
+                <select name="service" class="form-select">
+                    <option value="">All Services</option>
+                    <option value="architecture" {% if service_filter == 'architecture' %}selected{% endif %}>Architecture</option>
+                    <option value="interior_design" {% if service_filter == 'interior_design' %}selected{% endif %}>Interior Design</option>
+                    <option value="landscape" {% if service_filter == 'landscape' %}selected{% endif %}>Landscape Design</option>
+                    <option value="construction" {% if service_filter == 'construction' %}selected{% endif %}>Construction</option>
+                    <option value="consultation" {% if service_filter == 'consultation' %}selected{% endif %}>Consultation</option>
+                    <option value="other" {% if service_filter == 'other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">From Date</label>
+                <input type="date" name="date_from" class="form-control" value="{{ date_from }}">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">To Date</label>
+                <input type="date" name="date_to" class="form-control" value="{{ date_to }}">
+            </div>
+            <div class="col-12">
+                <button type="submit" class="btn btn-primary">Apply Filters</button>
+                <a href="{% url 'inquiry_list' %}" class="btn btn-secondary">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Inquiries Table -->
+<div class="card dashboard-card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Client</th>
+                        <th>Contact Info</th>
+                        <th>Service</th>
+                        <th>Budget</th>
+                        <th>Status</th>
+                        <th>Received</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for inquiry in page_obj %}
+                    <tr class="{% if inquiry.status == 'new' %}table-warning{% endif %}">
+                        <td>
+                            <strong>#{{ inquiry.inquiry_id }}</strong>
+                            {% if inquiry.is_urgent %}
+                            <span class="badge bg-danger">Urgent</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ inquiry.name }}</strong>
+                            <br>
+                            <small class="text-muted">{{ inquiry.project_name|default:"No project name" }}</small>
+                        </td>
+                        <td>
+                            <div class="small">
+                                <div><i class="fas fa-envelope me-1"></i> {{ inquiry.email }}</div>
+                                <div><i class="fas fa-phone me-1"></i> {{ inquiry.phone|default:"N/A" }}</div>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-info">{{ inquiry.get_service_type_display }}</span>
+                        </td>
+                        <td>
+                            {% if inquiry.budget_range %}
+                            <span class="badge bg-secondary">{{ inquiry.get_budget_range_display }}</span>
+                            {% else %}
+                            <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn btn-sm {% if inquiry.status == 'new' %}btn-warning{% elif inquiry.status == 'converted' %}btn-success{% elif inquiry.status == 'rejected' %}btn-danger{% else %}btn-primary{% endif %} dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    {{ inquiry.get_status_display }}
+                                </button>
+                                <ul class="dropdown-menu">
+                                    <li><a class="dropdown-item" href="#" onclick="updateStatus({{ inquiry.pk }}, 'new')">New</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="updateStatus({{ inquiry.pk }}, 'contacted')">Contacted</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="updateStatus({{ inquiry.pk }}, 'quoted')">Quoted</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="updateStatus({{ inquiry.pk }}, 'follow_up')">Follow Up</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="updateStatus({{ inquiry.pk }}, 'converted')">Converted</a></li>
+                                    <li><a class="dropdown-item" href="#" onclick="updateStatus({{ inquiry.pk }}, 'rejected')">Rejected</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="small">
+                                {{ inquiry.created_at|date:"M d, Y" }}
+                                <br>
+                                <span class="text-muted">{{ inquiry.created_at|date:"H:i" }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'inquiry_detail' inquiry.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="mailto:{{ inquiry.email }}" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                                <a href="tel:{{ inquiry.phone }}" class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-phone"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="fas fa-inbox fa-2x mb-3"></i>
+                                <h5>No inquiries found</h5>
+                                <p>All inquiries will appear here</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page=1{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">First</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Previous</a>
+                </li>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Next</a>
+                </li>
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">Last</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+        
+        <!-- Summary Stats -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="alert alert-info mb-0">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Showing {{ page_obj.start_index }} - {{ page_obj.end_index }} of {{ page_obj.paginator.count }} inquiries
+                </div>
+            </div>
+            <div class="col-md-6 text-end">
+                <div class="btn-group" role="group">
+                    {% if status_filter %}
+                    <span class="badge bg-primary me-2">Filter: {{ status_filter|title }}</span>
+                    {% endif %}
+                    {% if date_from %}
+                    <span class="badge bg-secondary me-2">From: {{ date_from }}</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateStatus(inquiryId, status) {
+    $.ajax({
+        url: "{% url 'update_status' 'inquiry' 0 %}".replace('0', inquiryId),
+        type: 'POST',
+        data: {
+            'status': status,
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                location.reload();
+            } else {
+                alert('Error updating status');
+            }
+        },
+        error: function(xhr) {
+            alert('Error updating status');
+        }
+    });
+}
+</script>
+{% endblock %}

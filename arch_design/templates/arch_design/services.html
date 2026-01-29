@@ -1,0 +1,618 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if selected_category == 'exterior' %}Exterior Design Services{% elif selected_category == 'interior' %}Interior Design Services{% else %}Our Services - Arch Design & Development{% endif %}{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Services Page Styles */
+    .hero-section {
+        background: linear-gradient(135deg, rgba(15, 44, 89, 0.9), rgba(28, 60, 116, 0.9)),
+                    url('{% static "images/services-hero.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        min-height: 50vh;
+        display: flex;
+        align-items: center;
+        color: white;
+    }
+    
+    .service-hero {
+        max-width: 600px;
+    }
+    
+    /* Service Tabs */
+    .service-tabs {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 20px;
+        box-shadow: var(--shadow-md);
+        position: sticky;
+        top: 100px;
+        z-index: 100;
+    }
+    
+    .service-tab {
+        padding: 15px 20px;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: var(--transition);
+        border: 2px solid transparent;
+    }
+    
+    .service-tab:hover {
+        background: rgba(15, 44, 89, 0.05);
+        border-color: rgba(15, 44, 89, 0.1);
+    }
+    
+    .service-tab.active {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        color: white;
+        border-color: var(--primary-color);
+    }
+    
+    .service-tab-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(15, 44, 89, 0.1);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 15px;
+        color: var(--primary-color);
+        transition: var(--transition);
+    }
+    
+    .service-tab.active .service-tab-icon {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+    
+    /* Service Cards */
+    .service-detail-card {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 40px;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 30px;
+        transition: var(--transition);
+    }
+    
+    .service-detail-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-5px);
+    }
+    
+    .service-icon-lg {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 2rem;
+        margin-bottom: 25px;
+    }
+    
+    .service-features {
+        margin-top: 30px;
+    }
+    
+    .feature-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 15px;
+        background: rgba(15, 44, 89, 0.03);
+        border-radius: 8px;
+        transition: var(--transition);
+    }
+    
+    .feature-item:hover {
+        background: rgba(15, 44, 89, 0.08);
+        transform: translateX(5px);
+    }
+    
+    .feature-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--accent-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        margin-right: 15px;
+        font-size: 1rem;
+    }
+    
+    /* Process Steps */
+    .process-steps {
+        counter-reset: step-counter;
+        position: relative;
+    }
+    
+    .process-steps::before {
+        content: '';
+        position: absolute;
+        left: 30px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, var(--primary-color), var(--accent-color));
+        z-index: 0;
+    }
+    
+    .process-step {
+        position: relative;
+        padding-left: 80px;
+        margin-bottom: 40px;
+        z-index: 1;
+    }
+    
+    .process-step::before {
+        counter-increment: step-counter;
+        content: counter(step-counter);
+        position: absolute;
+        left: 0;
+        width: 60px;
+        height: 60px;
+        background: white;
+        border: 2px solid var(--primary-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--primary-color);
+        z-index: 2;
+    }
+    
+    .process-content {
+        background: white;
+        padding: 25px;
+        border-radius: var(--border-radius);
+        box-shadow: var(--shadow-sm);
+    }
+    
+    /* Testimonial Slider */
+    .testimonial-slider {
+        background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        border-radius: var(--border-radius);
+        overflow: hidden;
+    }
+    
+    .testimonial-slide {
+        padding: 50px;
+        color: white;
+        min-height: 300px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+    
+    .testimonial-text {
+        font-size: 1.25rem;
+        font-style: italic;
+        margin-bottom: 25px;
+        position: relative;
+        padding-left: 40px;
+    }
+    
+    .testimonial-text::before {
+        content: '"';
+        position: absolute;
+        left: 0;
+        top: -20px;
+        font-size: 4rem;
+        color: rgba(255, 255, 255, 0.2);
+        font-family: 'Playfair Display', serif;
+    }
+    
+    /* Responsive */
+    @media (max-width: 992px) {
+        .service-tabs {
+            position: static;
+            margin-bottom: 30px;
+        }
+        
+        .process-steps::before {
+            left: 20px;
+        }
+        
+        .process-step {
+            padding-left: 60px;
+        }
+        
+        .process-step::before {
+            width: 40px;
+            height: 40px;
+            font-size: 1.2rem;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .service-detail-card {
+            padding: 25px;
+        }
+        
+        .testimonial-slide {
+            padding: 30px;
+        }
+        
+        .service-icon-lg {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section section-padding">
+    <div class="container">
+        <div class="service-hero">
+            <h1 class="display-4 fw-bold mb-4">
+                {% if selected_category == 'exterior' %}
+                Exterior Design Services
+                {% elif selected_category == 'interior' %}
+                Interior Design Services
+                {% else %}
+                Our Services
+                {% endif %}
+            </h1>
+            <p class="lead mb-4">
+                {% if selected_category == 'exterior' %}
+                Comprehensive exterior design solutions that transform buildings into architectural masterpieces.
+                {% elif selected_category == 'interior' %}
+                Bespoke interior design services creating beautiful, functional, and inspiring spaces.
+                {% else %}
+                Complete architectural and design solutions tailored to your vision and requirements.
+                {% endif %}
+            </p>
+            <a href="{% url 'inquiry_create' %}" class="btn btn-warning px-5">
+                <i class="fas fa-calendar-alt me-2"></i>Book Consultation
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Services Overview -->
+<section class="section-padding">
+    <div class="container">
+        <div class="row">
+            <!-- Service Tabs -->
+            <div class="col-lg-4 mb-5 mb-lg-0">
+                <div class="service-tabs">
+                    <div class="service-tab {% if selected_category == 'all' %}active{% endif %}" data-category="all">
+                        <div class="d-flex align-items-center">
+                            <div class="service-tab-icon">
+                                <i class="fas fa-layer-group"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1">All Services</h5>
+                                <p class="text-muted mb-0">Complete portfolio</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="service-tab {% if selected_category == 'exterior' %}active{% endif %}" data-category="exterior">
+                        <div class="d-flex align-items-center">
+                            <div class="service-tab-icon">
+                                <i class="fas fa-building"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1">Exterior Services</h5>
+                                <p class="text-muted mb-0">Architecture & facade</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="service-tab {% if selected_category == 'interior' %}active{% endif %}" data-category="interior">
+                        <div class="d-flex align-items-center">
+                            <div class="service-tab-icon">
+                                <i class="fas fa-couch"></i>
+                            </div>
+                            <div>
+                                <h5 class="fw-bold mb-1">Interior Services</h5>
+                                <p class="text-muted mb-0">Design & decoration</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Service Categories -->
+                <div class="mt-4">
+                    <h5 class="fw-bold mb-3">Service Categories</h5>
+                    <div class="list-group">
+                        {% for category in categories %}
+                        <a href="{% url 'services' category.category_type %}" 
+                           class="list-group-item list-group-item-action border-0 rounded mb-2 {% if selected_category == category.category_type %}active{% endif %}">
+                            <div class="d-flex align-items-center">
+                                {% if category.icon_class %}
+                                <i class="{{ category.icon_class }} me-3 text-primary"></i>
+                                {% else %}
+                                <i class="fas fa-circle me-3 text-primary"></i>
+                                {% endif %}
+                                <span>{{ category.name }}</span>
+                            </div>
+                        </a>
+                        {% empty %}
+                        <div class="list-group-item border-0">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-building me-3 text-primary"></i>
+                                <span>Exterior Architecture</span>
+                            </div>
+                        </div>
+                        <div class="list-group-item border-0">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-paint-roller me-3 text-primary"></i>
+                                <span>Interior Design</span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Services Content -->
+            <div class="col-lg-8">
+                {% if services %}
+                <div class="row">
+                    {% for service in services %}
+                    <div class="col-md-6 mb-4">
+                        <div class="card border-0 shadow-hover h-100">
+                            {% if service.featured_image %}
+                            <img src="{{ service.featured_image.url }}" class="card-img-top" alt="{{ service.name }}" height="200">
+                            {% endif %}
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    {% if service.icon %}
+                                    <img src="{{ service.icon.url }}" alt="{{ service.name }}" class="me-3" width="50">
+                                    {% else %}
+                                    <div class="bg-primary rounded-lg p-2 me-3">
+                                        <i class="fas fa-star text-white"></i>
+                                    </div>
+                                    {% endif %}
+                                    <h5 class="card-title fw-bold mb-0">{{ service.name }}</h5>
+                                </div>
+                                <p class="card-text text-muted mb-3">{{ service.short_description }}</p>
+                                <a href="{% url 'service_detail' service.slug %}" class="text-primary text-decoration-none fw-semibold">
+                                    Learn More <i class="fas fa-arrow-right ms-2"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <div class="service-icon-lg mx-auto mb-4">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3">No Services Available</h3>
+                    <p class="text-muted mb-4">Our services are being updated. Please check back soon or contact us for more information.</p>
+                    <a href="{% url 'contact' %}" class="btn btn-primary">
+                        Contact Us <i class="fas fa-envelope ms-2"></i>
+                    </a>
+                </div>
+                {% endif %}
+                
+                <!-- Service Process -->
+                <div class="mt-5 pt-5 border-top">
+                    <h3 class="fw-bold mb-4">Our Design Process</h3>
+                    <div class="process-steps">
+                        <div class="process-step">
+                            <div class="process-content">
+                                <h5 class="fw-bold mb-2">Discovery & Consultation</h5>
+                                <p class="text-muted mb-0">We begin by understanding your vision, requirements, and budget through detailed discussions and site visits.</p>
+                            </div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-content">
+                                <h5 class="fw-bold mb-2">Concept Development</h5>
+                                <p class="text-muted mb-0">Our team creates initial concepts and mood boards that reflect your style and functional needs.</p>
+                            </div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-content">
+                                <h5 class="fw-bold mb-2">Design & Planning</h5>
+                                <p class="text-muted mb-0">Detailed architectural plans, 3D visualizations, and material selections are developed for approval.</p>
+                            </div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-content">
+                                <h5 class="fw-bold mb-2">Implementation</h5>
+                                <p class="text-muted mb-0">We oversee the execution phase, ensuring quality control and adherence to design specifications.</p>
+                            </div>
+                        </div>
+                        <div class="process-step">
+                            <div class="process-content">
+                                <h5 class="fw-bold mb-2">Final Handover</h5>
+                                <p class="text-muted mb-0">Project completion with final inspections and client walkthroughs to ensure satisfaction.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="section-padding bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold mb-3">Why Choose Our Services</h2>
+            <p class="lead text-muted">Experience the difference with our professional approach</p>
+        </div>
+        <div class="row g-4">
+            <div class="col-lg-3 col-md-6">
+                <div class="text-center p-4">
+                    <div class="bg-primary rounded-circle p-3 d-inline-flex mb-3">
+                        <i class="fas fa-medal fa-2x text-white"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Proven Expertise</h5>
+                    <p class="text-muted mb-0">10+ years of experience delivering exceptional architectural solutions.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="text-center p-4">
+                    <div class="bg-primary rounded-circle p-3 d-inline-flex mb-3">
+                        <i class="fas fa-users fa-2x text-white"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Client-Centric</h5>
+                    <p class="text-muted mb-0">Personalized approach ensuring your vision becomes reality.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="text-center p-4">
+                    <div class="bg-primary rounded-circle p-3 d-inline-flex mb-3">
+                        <i class="fas fa-clock fa-2x text-white"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Timely Delivery</h5>
+                    <p class="text-muted mb-0">Strict adherence to project timelines and deadlines.</p>
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-6">
+                <div class="text-center p-4">
+                    <div class="bg-primary rounded-circle p-3 d-inline-flex mb-3">
+                        <i class="fas fa-shield-alt fa-2x text-white"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Quality Assurance</h5>
+                    <p class="text-muted mb-0">Rigorous quality checks at every stage of the project.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Service Categories Detail -->
+<section class="section-padding">
+    <div class="container">
+        <div class="row g-5">
+            <div class="col-lg-6">
+                <div class="service-detail-card">
+                    <div class="service-icon-lg">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3">Exterior Design Services</h3>
+                    <p class="text-muted mb-4">Comprehensive exterior architectural solutions that enhance your property's aesthetic appeal, functionality, and value.</p>
+                    
+                    <div class="service-features">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-drafting-compass"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">Architectural Design</h6>
+                                <p class="text-muted mb-0">Complete building design and planning</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-paint-roller"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">Facade Design</h6>
+                                <p class="text-muted mb-0">Modern facade and elevation design</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-tree"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">Landscape Design</h6>
+                                <p class="text-muted mb-0">Outdoor space planning and design</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="{% url 'exterior_services' %}" class="btn btn-primary mt-3">
+                        Explore Exterior Services <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="service-detail-card">
+                    <div class="service-icon-lg">
+                        <i class="fas fa-couch"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3">Interior Design Services</h3>
+                    <p class="text-muted mb-4">Transform your interior spaces with our bespoke design solutions that combine beauty, comfort, and functionality.</p>
+                    
+                    <div class="service-features">
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-home"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">Residential Interiors</h6>
+                                <p class="text-muted mb-0">Home interior design and decoration</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">Commercial Interiors</h6>
+                                <p class="text-muted mb-0">Office and commercial space design</p>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <div class="feature-icon">
+                                <i class="fas fa-lightbulb"></i>
+                            </div>
+                            <div>
+                                <h6 class="fw-bold mb-1">Lighting Design</h6>
+                                <p class="text-muted mb-0">Strategic lighting solutions</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <a href="{% url 'interior_services' %}" class="btn btn-primary mt-3">
+                        Explore Interior Services <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="section-padding bg-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <h2 class="display-5 fw-bold mb-3">Ready to Start Your Project?</h2>
+                <p class="lead mb-0">Contact us today for a free consultation and let's discuss your design requirements.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="{% url 'inquiry_create' %}" class="btn btn-light btn-lg px-5">
+                    <i class="fas fa-paper-plane me-2"></i>Get Quote
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Service Tabs Functionality
+    $(document).ready(function() {
+        $('.service-tab').click(function() {
+            const category = $(this).data('category');
+            window.location.href = `{% url 'services' 'all' %}`.replace('all', category);
+        });
+    });
+</script>
+{% endblock %}

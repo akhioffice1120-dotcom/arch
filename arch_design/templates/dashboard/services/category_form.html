@@ -1,0 +1,159 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{% if category %}Edit{% else %}Create{% endif %} Service Category{% endblock %}
+
+{% block page_title %}{% if category %}Edit{% else %}Create{% endif %} Service Category{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'service_category_list' %}">Categories</a></li>
+<li class="breadcrumb-item active">{% if category %}Edit{% else %}Create{% endif %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Category Details</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_name" class="form-label">Name *</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                            <div class="text-danger small">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_slug" class="form-label">Slug *</label>
+                            {{ form.slug }}
+                            <div class="form-text">URL-friendly version of the name</div>
+                            {% if form.slug.errors %}
+                            <div class="text-danger small">{{ form.slug.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_category_type" class="form-label">Type *</label>
+                            {{ form.category_type }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_display_order" class="form-label">Display Order</label>
+                            {{ form.display_order }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_icon_class" class="form-label">Icon Class</label>
+                        {{ form.icon_class }}
+                        <div class="form-text">
+                            FontAwesome class (e.g., "fas fa-building", "fas fa-couch")
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> Save Category
+                        </button>
+                        <a href="{% url 'service_category_list' %}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Preview</h6>
+            </div>
+            <div class="card-body text-center">
+                <div class="mb-3">
+                    {% if form.instance.icon_class %}
+                    <i class="{{ form.instance.icon_class }} fa-3x text-primary mb-3"></i>
+                    {% else %}
+                    <i class="fas fa-tag fa-3x text-muted mb-3"></i>
+                    {% endif %}
+                    <h4>{{ form.instance.name|default:"Category Name" }}</h4>
+                    <span class="badge 
+                        {% if form.instance.category_type == 'exterior' %}bg-primary
+                        {% elif form.instance.category_type == 'interior' %}bg-success
+                        {% else %}bg-secondary{% endif %}">
+                        {{ form.instance.get_category_type_display|default:"Type" }}
+                    </span>
+                </div>
+                
+                <div class="text-start">
+                    <strong>Services:</strong>
+                    <p class="mb-0">
+                        {% if category %}
+                        {{ category.services.count }} service(s)
+                        {% else %}
+                        0 services
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card dashboard-card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Icon Reference</h6>
+            </div>
+            <div class="card-body">
+                <p class="small mb-2">Popular FontAwesome icons:</p>
+                <div class="row g-2">
+                    <div class="col-6">
+                        <div class="border rounded p-2 text-center">
+                            <i class="fas fa-building"></i><br>
+                            <small>fa-building</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-2 text-center">
+                            <i class="fas fa-couch"></i><br>
+                            <small>fa-couch</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-2 text-center">
+                            <i class="fas fa-home"></i><br>
+                            <small>fa-home</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="border rounded p-2 text-center">
+                            <i class="fas fa-paint-roller"></i><br>
+                            <small>fa-paint-roller</small>
+                        </div>
+                    </div>
+                </div>
+                <p class="small mt-2 mb-0">Visit <a href="https://fontawesome.com/icons" target="_blank">FontAwesome</a> for more icons</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-generate slug from name
+    $('#id_name').on('input', function() {
+        const name = $(this).val();
+        const slug = name.toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+        $('#id_slug').val(slug);
+    });
+</script>
+{% endblock %}

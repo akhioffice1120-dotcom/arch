@@ -1,0 +1,168 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Homepage Sliders{% endblock %}
+
+{% block page_title %}Homepage Sliders{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Sliders</li>
+{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'slider_create' %}" class="btn btn-primary">
+    <i class="fas fa-plus me-2"></i> Add New Slider
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="card dashboard-card">
+    <div class="card-body p-0">
+        {% if sliders %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th width="80">Image</th>
+                        <th>Title</th>
+                        <th>Subtitle</th>
+                        <th>Order</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="sortable-list">
+                    {% for slider in sliders %}
+                    <tr data-id="{{ slider.id }}">
+                        <td>
+                            {% if slider.image %}
+                            <img src="{{ slider.image.url }}" alt="{{ slider.title }}" 
+                                 class="image-thumb" style="width: 70px; height: 50px;">
+                            {% else %}
+                            <div class="image-thumb bg-light d-flex align-items-center justify-content-center" 
+                                 style="width: 70px; height: 50px;">
+                                <i class="fas fa-image text-muted"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>{{ slider.title }}</td>
+                        <td>{{ slider.subtitle|truncatechars:50|default:"-" }}</td>
+                        <td>
+                            <span class="badge bg-secondary">{{ slider.display_order }}</span>
+                        </td>
+                        <td>
+                            {% if slider.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ slider.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'slider_edit' slider.pk %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'slider_delete' slider.pk %}" class="btn btn-outline-danger">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="card-footer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small class="text-muted">{{ sliders.count }} slider(s)</small>
+                </div>
+                <div>
+                    <button type="button" id="save-order" class="btn btn-sm btn-outline-primary">
+                        <i class="fas fa-save me-1"></i> Save Order
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-images fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No sliders found</h5>
+            <p class="text-muted">Add your first homepage slider</p>
+            <a href="{% url 'slider_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Create First Slider
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/ui/1.13.0/jquery-ui.min.js"></script>
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.0/themes/base/jquery-ui.css">
+
+<script>
+    $(function() {
+        // Make table rows sortable
+        $("#sortable-list").sortable({
+            handle: "td",
+            placeholder: "sortable-placeholder",
+            update: function(event, ui) {
+                updateOrder();
+            }
+        });
+        
+        // Update order numbers
+        function updateOrder() {
+            $("tbody tr").each(function(index) {
+                $(this).find(".badge.bg-secondary").text(index + 1);
+            });
+        }
+        
+        // Save order to server
+        $("#save-order").click(function() {
+            const orderData = [];
+            $("tbody tr").each(function(index) {
+                orderData.push({
+                    id: $(this).data('id'),
+                    order: index + 1
+                });
+            });
+            
+            $.ajax({
+                url: '{% url "slider_reorder" %}',
+                type: 'POST',
+                data: {
+                    order: JSON.stringify(orderData)
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Order saved successfully!');
+                    } else {
+                        alert('Error saving order: ' + response.error);
+                    }
+                },
+                error: function() {
+                    alert('Error saving order');
+                }
+            });
+        });
+    });
+</script>
+
+<style>
+    .sortable-placeholder {
+        background-color: #f8f9fa;
+        border: 2px dashed #dee2e6;
+        height: 60px;
+    }
+    
+    tbody tr {
+        cursor: move;
+    }
+</style>
+{% endblock %}

@@ -1,0 +1,399 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block page_title %}Dashboard Overview{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Overview</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        border-radius: 12px;
+        border: none;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        transition: transform 0.3s;
+        height: 100%;
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+    }
+    
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        color: white;
+    }
+    
+    .bg-stat-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+    .bg-stat-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+    .bg-stat-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+    .bg-stat-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+    .bg-stat-5 { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+    .bg-stat-6 { background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); }
+    
+    .activity-item {
+        border-left: 3px solid var(--primary-color);
+        padding-left: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .chart-container {
+        position: relative;
+        height: 300px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <!-- Statistics Cards -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-stat-1 me-3">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">Total Projects</h6>
+                        <h3 class="mb-0">{{ stats.total_projects }}</h3>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="text-success">
+                        <i class="fas fa-arrow-up"></i> {{ stats.active_projects }} Active
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-stat-2 me-3">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">Total Inquiries</h6>
+                        <h3 class="mb-0">{{ stats.total_inquiries }}</h3>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="text-danger">
+                        <i class="fas fa-exclamation-circle"></i> {{ stats.new_inquiries }} New
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-stat-3 me-3">
+                        <i class="fas fa-concierge-bell"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">Total Services</h6>
+                        <h3 class="mb-0">{{ stats.total_services }}</h3>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="text-primary">
+                        <i class="fas fa-star"></i> Featured Services
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="stat-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="stat-icon bg-stat-4 me-3">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div>
+                        <h6 class="text-muted mb-1">Testimonials</h6>
+                        <h3 class="mb-0">{{ stats.total_testimonials }}</h3>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <span class="text-warning">
+                        <i class="fas fa-check-circle"></i> Approved
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Charts -->
+    <div class="col-xl-8 mb-4">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Weekly Inquiries</h6>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="inquiriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-xl-4 mb-4">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'project_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i> Add New Project
+                    </a>
+                    <a href="{% url 'service_create' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-2"></i> Add New Service
+                    </a>
+                    <a href="{% url 'blog_post_create' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-2"></i> Add Blog Post
+                    </a>
+                    <a href="{% url 'slider_create' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus me-2"></i> Add Slider
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Inquiries -->
+    <div class="col-lg-6 mb-4">
+        <div class="card dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0">Recent Inquiries</h6>
+                <a href="{% url 'inquiry_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Service</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for inquiry in recent_inquiries %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'inquiry_detail' inquiry.pk %}" class="text-decoration-none">
+                                        {{ inquiry.name|truncatechars:20 }}
+                                    </a>
+                                </td>
+                                <td>{{ inquiry.get_service_type_display }}</td>
+                                <td>
+                                    <span class="badge badge-{{ inquiry.status }}">
+                                        {{ inquiry.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>{{ inquiry.created_at|date:"M d" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-3">No inquiries yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Projects -->
+    <div class="col-lg-6 mb-4">
+        <div class="card dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0">Recent Projects</h6>
+                <a href="{% url 'project_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Client</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for project in recent_projects %}
+                            <tr>
+                                <td>
+                                    <a href="{% url 'project_edit' project.pk %}" class="text-decoration-none">
+                                        {{ project.title|truncatechars:25 }}
+                                    </a>
+                                </td>
+                                <td>{{ project.client_name|truncatechars:15 }}</td>
+                                <td>
+                                    <span class="badge badge-{{ project.status }}">
+                                        {{ project.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <a href="{% url 'project_edit' project.pk %}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-3">No projects yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Messages -->
+    <div class="col-12">
+        <div class="card dashboard-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0">Recent Messages</h6>
+                <a href="{% url 'contact_message_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Subject</th>
+                                <th>Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for message in recent_messages %}
+                            <tr>
+                                <td>{{ message.name }}</td>
+                                <td>{{ message.email|truncatechars:20 }}</td>
+                                <td>
+                                    <a href="{% url 'contact_message_detail' message.pk %}" class="text-decoration-none">
+                                        {{ message.subject|truncatechars:30 }}
+                                    </a>
+                                </td>
+                                <td>{{ message.created_at|date:"M d, H:i" }}</td>
+                                <td>
+                                    {% if message.is_read %}
+                                    <span class="badge bg-success">Read</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Unread</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-3">No messages yet</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Weekly Inquiries Chart
+    const inquiriesCtx = document.getElementById('inquiriesChart').getContext('2d');
+    const weeklyInquiries = {{ weekly_inquiries|safe }};
+    
+    const inquiriesChart = new Chart(inquiriesCtx, {
+        type: 'line',
+        data: {
+            labels: weeklyInquiries.map(item => item.date),
+            datasets: [{
+                label: 'Inquiries',
+                data: weeklyInquiries.map(item => item.count),
+                borderColor: '#0F2C59',
+                backgroundColor: 'rgba(15, 44, 89, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: {
+                        display: true
+                    },
+                    ticks: {
+                        stepSize: 1
+                    }
+                },
+                x: {
+                    grid: {
+                        display: false
+                    }
+                }
+            }
+        }
+    });
+    
+    // Auto refresh stats every 30 seconds
+    function refreshStats() {
+        $.ajax({
+            url: '{% url "get_dashboard_stats" %}',
+            type: 'GET',
+            success: function(data) {
+                // Update stats dynamically if needed
+                console.log('Stats refreshed', data);
+            }
+        });
+    }
+    
+    // Refresh every 30 seconds
+    setInterval(refreshStats, 30000);
+</script>
+{% endblock %}

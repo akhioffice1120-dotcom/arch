@@ -1,0 +1,359 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Contact Messages{% endblock %}
+
+{% block page_title %}Contact Messages{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Messages</li>
+{% endblock %}
+
+{% block page_actions %}
+<div class="dropdown">
+    <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+        <i class="fas fa-filter me-2"></i> Filter
+    </button>
+    <ul class="dropdown-menu">
+        <li><a class="dropdown-item" href="?read=no">Unread Messages</a></li>
+        <li><a class="dropdown-item" href="?replied=no">Unreplied</a></li>
+        <li><a class="dropdown-item" href="?replied=yes">Replied</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item" href="{% url 'contact_message_list' %}">Clear Filters</a></li>
+    </ul>
+</div>
+{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<div class="card dashboard-card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Read Status</label>
+                <select name="read" class="form-select">
+                    <option value="">All Messages</option>
+                    <option value="no" {% if read_filter == 'no' %}selected{% endif %}>Unread</option>
+                    <option value="yes" {% if read_filter == 'yes' %}selected{% endif %}>Read</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Reply Status</label>
+                <select name="replied" class="form-select">
+                    <option value="">All Messages</option>
+                    <option value="no" {% if replied_filter == 'no' %}selected{% endif %}>Not Replied</option>
+                    <option value="yes" {% if replied_filter == 'yes' %}selected{% endif %}>Replied</option>
+                </select>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">&nbsp;</label>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-primary">Apply Filters</button>
+                    <a href="{% url 'contact_message_list' %}" class="btn btn-secondary">Clear</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Messages Table -->
+<div class="card dashboard-card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th width="50">
+                            <input type="checkbox" id="selectAll">
+                        </th>
+                        <th>Sender</th>
+                        <th>Subject / Message</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for message in page_obj %}
+                    <tr class="{% if not message.is_read %}table-warning{% endif %}">
+                        <td>
+                            <input type="checkbox" class="message-checkbox" value="{{ message.pk }}">
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="avatar me-3">
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                                        {{ message.name|first|upper }}
+                                    </div>
+                                </div>
+                                <div>
+                                    <strong>{{ message.name }}</strong>
+                                    <br>
+                                    <small class="text-muted">{{ message.email|truncatechars:25 }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div>
+                                <strong class="{% if not message.is_read %}text-primary{% endif %}">
+                                    {{ message.subject|default:"No Subject" }}
+                                </strong>
+                                <br>
+                                <small class="text-muted">{{ message.message|truncatechars:100 }}</small>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="small">
+                                {{ message.created_at|date:"M d, Y" }}
+                                <br>
+                                <span class="text-muted">{{ message.created_at|date:"H:i" }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-column gap-1">
+                                {% if message.is_read %}
+                                <span class="badge bg-success">Read</span>
+                                {% else %}
+                                <span class="badge bg-danger">Unread</span>
+                                {% endif %}
+                                
+                                {% if message.replied %}
+                                <span class="badge bg-info">Replied</span>
+                                {% else %}
+                                <span class="badge bg-warning">Pending</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{% url 'contact_message_detail' message.pk %}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="mailto:{{ message.email }}?subject=Re: {{ message.subject }}" class="btn btn-sm btn-outline-success">
+                                    <i class="fas fa-reply"></i>
+                                </a>
+                                {% if not message.is_read %}
+                                <a href="#" class="btn btn-sm btn-outline-info mark-read" data-id="{{ message.pk }}">
+                                    <i class="fas fa-check"></i>
+                                </a>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center py-4">
+                            <div class="text-muted">
+                                <i class="fas fa-inbox fa-2x mb-3"></i>
+                                <h5>No messages found</h5>
+                                <p>All contact messages will appear here</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Bulk Actions -->
+        {% if page_obj %}
+        <div class="card-footer">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span id="selectedCount">0</span> selected
+                    <div class="btn-group ms-3" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-primary bulk-action" data-action="mark_read">
+                            <i class="fas fa-check me-1"></i> Mark as Read
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-success bulk-action" data-action="mark_replied">
+                            <i class="fas fa-reply me-1"></i> Mark as Replied
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger bulk-action" data-action="delete">
+                            <i class="fas fa-trash me-1"></i> Delete
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Pagination -->
+                {% if page_obj.has_other_pages %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination pagination-sm mb-0">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&laquo;</a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                            <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">{{ num }}</a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">&raquo;</a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Summary Stats -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <h6 class="card-title">Messages Summary</h6>
+                <div class="row">
+                    <div class="col-4">
+                        <div class="text-center">
+                            <h3>{{ page_obj.paginator.count }}</h3>
+                            <small class="text-muted">Total</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center">
+                            <h3 class="text-danger">{{ unread_count|default:0 }}</h3>
+                            <small class="text-muted">Unread</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center">
+                            <h3 class="text-success">{{ replied_count|default:0 }}</h3>
+                            <small class="text-muted">Replied</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card dashboard-card">
+            <div class="card-body">
+                <h6 class="card-title">Quick Tips</h6>
+                <ul class="mb-0">
+                    <li>Click on message subject to view full details</li>
+                    <li>Use reply button to respond via email</li>
+                    <li>Mark messages as read once addressed</li>
+                    <li>Use filters to manage message workflow</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    let selectedMessages = [];
+    
+    // Select All functionality
+    $('#selectAll').change(function() {
+        const isChecked = $(this).prop('checked');
+        $('.message-checkbox').prop('checked', isChecked);
+        
+        if (isChecked) {
+            selectedMessages = [];
+            $('.message-checkbox').each(function() {
+                selectedMessages.push($(this).val());
+            });
+        } else {
+            selectedMessages = [];
+        }
+        
+        updateSelectedCount();
+    });
+    
+    // Individual checkbox handling
+    $('.message-checkbox').change(function() {
+        const messageId = $(this).val();
+        
+        if ($(this).prop('checked')) {
+            if (!selectedMessages.includes(messageId)) {
+                selectedMessages.push(messageId);
+            }
+        } else {
+            const index = selectedMessages.indexOf(messageId);
+            if (index > -1) {
+                selectedMessages.splice(index, 1);
+            }
+            $('#selectAll').prop('checked', false);
+        }
+        
+        updateSelectedCount();
+    });
+    
+    // Update selected count
+    function updateSelectedCount() {
+        $('#selectedCount').text(selectedMessages.length);
+    }
+    
+    // Bulk actions
+    $('.bulk-action').click(function() {
+        const action = $(this).data('action');
+        
+        if (selectedMessages.length === 0) {
+            alert('Please select at least one message');
+            return;
+        }
+        
+        if (action === 'delete' && !confirm('Are you sure you want to delete selected messages?')) {
+            return;
+        }
+        
+        $.ajax({
+            url: '{% url "contact_message_list" %}',
+            type: 'POST',
+            data: {
+                'action': action,
+                'message_ids': selectedMessages,
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    location.reload();
+                } else {
+                    alert('Error performing bulk action');
+                }
+            },
+            error: function(xhr) {
+                alert('Error performing bulk action');
+            }
+        });
+    });
+    
+    // Mark as read
+    $('.mark-read').click(function(e) {
+        e.preventDefault();
+        const messageId = $(this).data('id');
+        
+        $.ajax({
+            url: "{% url 'contact_message_detail' 0 %}".replace('0', messageId),
+            type: 'POST',
+            data: {
+                'mark_read': 'true',
+                'csrfmiddlewaretoken': '{{ csrf_token }}'
+            },
+            success: function(response) {
+                location.reload();
+            },
+            error: function(xhr) {
+                alert('Error marking as read');
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

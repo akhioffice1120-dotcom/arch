@@ -1,0 +1,189 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}{{ title|default:"Edit Section" }}{% endblock %}
+
+{% block page_title %}{{ title|default:"Edit Section" }}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'company_info_list' %}">Company Info</a></li>
+<li class="breadcrumb-item active">{{ title|default:"Edit" }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Section Details</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Title *</label>
+                            {{ form.title }}
+                            {% if form.title.errors %}
+                            <div class="text-danger">{{ form.title.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Subtitle</label>
+                            {{ form.subtitle }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Slug *</label>
+                            {{ form.slug }}
+                            <small class="form-text text-muted">URL-friendly identifier (lowercase, hyphens)</small>
+                            {% if form.slug.errors %}
+                            <div class="text-danger">{{ form.slug.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Display Order</label>
+                            {{ form.display_order }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Content</label>
+                        {{ form.content }}
+                        <div class="form-text">Use HTML formatting for rich content</div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Image</label>
+                            {{ form.image }}
+                            {% if section.image %}
+                            <div class="mt-2">
+                                <img src="{{ section.image.url }}" alt="{{ section.title }}" class="img-thumbnail" style="max-height: 150px;">
+                                <div class="form-check mt-2">
+                                    <input class="form-check-input" type="checkbox" name="clear_image" id="clear_image">
+                                    <label class="form-check-label" for="clear_image">
+                                        Remove current image
+                                    </label>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Icon Class</label>
+                            {{ form.icon_class }}
+                            <small class="form-text text-muted">Font Awesome class (e.g., fas fa-building)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            {{ form.is_active }}
+                            <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                                Active (Visible on website)
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'company_info_list' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save Section</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Help & Tips</h5>
+            </div>
+            <div class="card-body">
+                <h6>Section Types:</h6>
+                <ul class="mb-3">
+                    <li><strong>About Us</strong> - Company history and mission</li>
+                    <li><strong>Vision & Mission</strong> - Company goals</li>
+                    <li><strong>Team</strong> - Team information</li>
+                    <li><strong>Awards</strong> - Awards and recognition</li>
+                    <li><strong>Contact Info</strong> - Contact details</li>
+                </ul>
+                
+                <h6>Slug Examples:</h6>
+                <ul>
+                    <li>about-us</li>
+                    <li>vision-mission</li>
+                    <li>our-team</li>
+                    <li>awards</li>
+                    <li>contact-info</li>
+                </ul>
+                
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Note:</strong> Use slugs consistently for linking sections in menus.
+                </div>
+            </div>
+        </div>
+        
+        {% if section %}
+        <div class="card dashboard-card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Section Info</h5>
+            </div>
+            <div class="card-body">
+                <dl class="mb-0">
+                    <dt>Created:</dt>
+                    <dd>{{ section.created_at|date:"F d, Y" }}</dd>
+                    
+                    <dt>Last Updated:</dt>
+                    <dd>{{ section.updated_at|date:"F d, Y" }}</dd>
+                    
+                    {% if section.created_by %}
+                    <dt>Created By:</dt>
+                    <dd>{{ section.created_by.get_full_name }}</dd>
+                    {% endif %}
+                </dl>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Auto-generate slug from title
+$('#id_title').on('keyup', function() {
+    const title = $(this).val();
+    const slug = title.toLowerCase()
+        .replace(/[^\w\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/--+/g, '-')
+        .trim();
+    $('#id_slug').val(slug);
+});
+
+// Initialize textarea with CKEditor
+ClassicEditor
+    .create(document.querySelector('#id_content'), {
+        toolbar: {
+            items: [
+                'heading', '|',
+                'bold', 'italic', 'link', 'bulletedList', 'numberedList', '|',
+                'outdent', 'indent', '|',
+                'blockQuote', 'insertTable', 'undo', 'redo'
+            ]
+        },
+        language: 'en'
+    })
+    .catch(error => {
+        console.error(error);
+    });
+</script>
+{% endblock %}

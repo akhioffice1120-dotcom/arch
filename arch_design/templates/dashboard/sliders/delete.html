@@ -1,0 +1,49 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Delete Slider{% endblock %}
+
+{% block page_title %}Delete Slider{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'slider_list' %}">Sliders</a></li>
+<li class="breadcrumb-item active">Delete</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card dashboard-card">
+            <div class="card-header bg-danger text-white">
+                <h6 class="card-title mb-0">Confirm Deletion</h6>
+            </div>
+            <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle fa-4x text-danger mb-3"></i>
+                <h4>Are you sure?</h4>
+                <p class="mb-4">
+                    You are about to delete the slider: <strong>"{{ slider.title }}"</strong>.
+                    This action cannot be undone.
+                </p>
+                
+                {% if slider.image %}
+                <div class="mb-4">
+                    <img src="{{ slider.image.url }}" alt="{{ slider.title }}" 
+                         class="img-fluid rounded" style="max-height: 200px;">
+                </div>
+                {% endif %}
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-center gap-3">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="fas fa-trash me-2"></i> Yes, Delete
+                        </button>
+                        <a href="{% url 'slider_list' %}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

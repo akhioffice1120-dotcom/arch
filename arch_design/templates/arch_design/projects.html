@@ -1,0 +1,598 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Our Projects | Arch Design & Development{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Projects Page Styles */
+    .projects-hero {
+        background: linear-gradient(135deg, rgba(15, 44, 89, 0.9), rgba(28, 60, 116, 0.9)),
+                    url('{% static "images/projects-hero.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        min-height: 50vh;
+        display: flex;
+        align-items: center;
+        color: white;
+    }
+    
+    .filter-sidebar {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 30px;
+        box-shadow: var(--shadow-md);
+        position: sticky;
+        top: 100px;
+    }
+    
+    .filter-section {
+        margin-bottom: 30px;
+    }
+    
+    .filter-title {
+        font-weight: 600;
+        color: var(--primary-color);
+        margin-bottom: 15px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid var(--light-accent);
+    }
+    
+    .filter-item {
+        margin-bottom: 10px;
+    }
+    
+    .filter-checkbox {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 8px;
+        transition: var(--transition);
+    }
+    
+    .filter-checkbox:hover {
+        background: rgba(15, 44, 89, 0.05);
+    }
+    
+    .filter-checkbox input {
+        margin-right: 10px;
+        width: 18px;
+        height: 18px;
+        border-radius: 4px;
+        border: 2px solid var(--primary-color);
+    }
+    
+    /* Project Cards */
+    .project-card-grid {
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--border-radius);
+        height: 350px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+    }
+    
+    .project-card-grid:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .project-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .project-card-grid:hover .project-img {
+        transform: scale(1.1);
+    }
+    
+    .project-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(15, 44, 89, 0.95), rgba(15, 44, 89, 0.3));
+        color: white;
+        padding: 25px;
+        transform: translateY(0);
+        transition: var(--transition);
+    }
+    
+    .project-card-grid:hover .project-overlay {
+        background: linear-gradient(to top, rgba(15, 44, 89, 0.98), rgba(15, 44, 89, 0.5));
+    }
+    
+    .project-meta {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 0.9rem;
+    }
+    
+    .project-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    
+    .status-completed {
+        background: #10b981;
+        color: white;
+    }
+    
+    .status-ongoing {
+        background: #f59e0b;
+        color: white;
+    }
+    
+    .status-upcoming {
+        background: #3b82f6;
+        color: white;
+    }
+    
+    /* Grid Layout Control */
+    .grid-controls {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 15px 20px;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 30px;
+    }
+    
+    .view-options button {
+        width: 40px;
+        height: 40px;
+        border: 2px solid var(--gray-light);
+        background: transparent;
+        border-radius: 8px;
+        margin-right: 10px;
+        transition: var(--transition);
+    }
+    
+    .view-options button.active,
+    .view-options button:hover {
+        border-color: var(--primary-color);
+        background: var(--primary-color);
+        color: white;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 80px 20px;
+    }
+    
+    .empty-state-icon {
+        width: 100px;
+        height: 100px;
+        background: rgba(15, 44, 89, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 30px;
+        color: var(--primary-color);
+        font-size: 2.5rem;
+    }
+    
+    /* Pagination */
+    .pagination {
+        justify-content: center;
+        margin-top: 50px;
+    }
+    
+    .page-item.active .page-link {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .page-link {
+        color: var(--primary-color);
+        border: 2px solid var(--gray-light);
+        margin: 0 5px;
+        border-radius: 8px !important;
+        padding: 10px 20px;
+        transition: var(--transition);
+    }
+    
+    .page-link:hover {
+        background: rgba(15, 44, 89, 0.05);
+        border-color: var(--primary-color);
+    }
+    
+    /* Search Bar */
+    .search-bar {
+        position: relative;
+        margin-bottom: 30px;
+    }
+    
+    .search-bar input {
+        width: 100%;
+        padding: 15px 20px;
+        border: 2px solid var(--gray-light);
+        border-radius: var(--border-radius);
+        font-size: 1rem;
+        transition: var(--transition);
+    }
+    
+    .search-bar input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(15, 44, 89, 0.1);
+        outline: none;
+    }
+    
+    .search-btn {
+        position: absolute;
+        right: 5px;
+        top: 5px;
+        background: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 10px 20px;
+        transition: var(--transition);
+    }
+    
+    .search-btn:hover {
+        background: var(--secondary-color);
+    }
+    
+    @media (max-width: 992px) {
+        .filter-sidebar {
+            position: static;
+            margin-bottom: 30px;
+        }
+        
+        .project-card-grid {
+            height: 300px;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .grid-controls {
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .project-card-grid {
+            height: 250px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="projects-hero section-padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-4">Our Portfolio</h1>
+                <p class="lead mb-4">Explore our diverse portfolio of architectural excellence, from residential masterpieces to commercial landmarks.</p>
+                <div class="d-flex flex-wrap gap-3">
+                    <a href="#projects-grid" class="btn btn-warning btn-lg">
+                        <i class="fas fa-eye me-2"></i>View Projects
+                    </a>
+                    <a href="{% url 'inquiry_create' %}" class="btn btn-outline-light btn-lg">
+                        <i class="fas fa-paper-plane me-2"></i>Start Your Project
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Projects Section -->
+<section class="section-padding" id="projects-grid">
+    <div class="container">
+        <div class="row">
+            <!-- Filter Sidebar -->
+            <div class="col-lg-3 mb-5 mb-lg-0">
+                <div class="filter-sidebar">
+                    <!-- Search -->
+                    <div class="search-bar">
+                        <form method="get" action="{% url 'projects' %}">
+                            <input type="text" 
+                                   name="search" 
+                                   placeholder="Search projects..." 
+                                   value="{{ search_query }}">
+                            <button type="submit" class="search-btn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <!-- Categories -->
+                    <div class="filter-section">
+                        <h5 class="filter-title">Categories</h5>
+                        <form id="filter-form" method="get">
+                            {% for category in categories %}
+                            <div class="filter-item">
+                                <label class="filter-checkbox">
+                                    <input type="checkbox" 
+                                           name="category" 
+                                           value="{{ category.slug }}"
+                                           {% if category.slug in selected_category %}checked{% endif %}
+                                           onchange="this.form.submit()">
+                                    <span>{{ category.name }}</span>
+                                </label>
+                            </div>
+                            {% empty %}
+                            <p class="text-muted">No categories available</p>
+                            {% endfor %}
+                        </form>
+                    </div>
+                    
+                    <!-- Project Status -->
+                    <div class="filter-section">
+                        <h5 class="filter-title">Project Status</h5>
+                        {% for status in project_statuses %}
+                        <div class="filter-item">
+                            <label class="filter-checkbox">
+                                <input type="checkbox" 
+                                       name="status" 
+                                       value="{{ status.0 }}"
+                                       {% if status.0 == selected_status %}checked{% endif %}
+                                       onchange="this.form.submit()">
+                                <span>{{ status.1 }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Service Types -->
+                    <div class="filter-section">
+                        <h5 class="filter-title">Service Types</h5>
+                        {% for service_type in service_types %}
+                        <div class="filter-item">
+                            <label class="filter-checkbox">
+                                <input type="checkbox" 
+                                       name="service_type" 
+                                       value="{{ service_type.0 }}"
+                                       {% if service_type.0 == selected_service_type %}checked{% endif %}
+                                       onchange="this.form.submit()">
+                                <span>{{ service_type.1 }}</span>
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    <!-- Clear Filters -->
+                    {% if selected_category or selected_status or selected_service_type or search_query %}
+                    <div class="filter-section">
+                        <a href="{% url 'projects' %}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-times me-2"></i>Clear All Filters
+                        </a>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Stats -->
+                    <div class="filter-section">
+                        <h5 class="filter-title">Portfolio Stats</h5>
+                        <div class="text-center">
+                            <div class="display-6 fw-bold text-primary">{{ projects.paginator.count }}</div>
+                            <p class="text-muted">Total Projects</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Projects Grid -->
+            <div class="col-lg-9">
+                <!-- Grid Controls -->
+                <div class="grid-controls d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h4 class="fw-bold mb-0">
+                            {% if search_query %}
+                            Search Results for "{{ search_query }}"
+                            {% else %}
+                            All Projects
+                            {% endif %}
+                        </h4>
+                        <p class="text-muted mb-0">
+                            Showing {{ projects.start_index }}-{{ projects.end_index }} of {{ projects.paginator.count }} projects
+                        </p>
+                    </div>
+                    <div class="view-options">
+                        <button class="grid-view active" data-view="grid">
+                            <i class="fas fa-th"></i>
+                        </button>
+                        <button class="list-view" data-view="list">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Projects Grid -->
+                <div class="row" id="projects-container">
+                    {% if projects %}
+                        {% for project in projects %}
+                        <div class="col-lg-4 col-md-6 project-item">
+                            <div class="project-card-grid">
+                                <img src="{{ project.featured_image.url }}" 
+                                     alt="{{ project.title }}" 
+                                     class="project-img">
+                                <div class="project-overlay">
+                                    <div class="project-meta">
+                                        <span class="project-status status-{{ project.status }}">
+                                            {{ project.get_status_display }}
+                                        </span>
+                                        <span>
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            {{ project.completion_date|date:"M Y" }}
+                                        </span>
+                                    </div>
+                                    <h5 class="fw-bold mb-2">{{ project.title }}</h5>
+                                    <p class="mb-3">{{ project.location }}</p>
+                                    <a href="{% url 'project_detail' project.slug %}" 
+                                       class="text-white text-decoration-none fw-semibold">
+                                        View Details <i class="fas fa-arrow-right ms-2"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="col-12">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-search"></i>
+                            </div>
+                            <h3 class="fw-bold mb-3">No Projects Found</h3>
+                            <p class="lead text-muted mb-4">
+                                {% if search_query %}
+                                No projects found matching "{{ search_query }}". Try different search terms.
+                                {% else %}
+                                No projects available in the selected filters.
+                                {% endif %}
+                            </p>
+                            <a href="{% url 'projects' %}" class="btn btn-primary">
+                                <i class="fas fa-redo me-2"></i>Reset Filters
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if projects.has_other_pages %}
+                <nav aria-label="Page navigation">
+                    <ul class="pagination">
+                        {% if projects.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ projects.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_service_type %}&service_type={{ selected_service_type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                <i class="fas fa-chevron-left"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                        
+                        {% for num in projects.paginator.page_range %}
+                            {% if projects.number == num %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ num }}</span>
+                            </li>
+                            {% elif num > projects.number|add:'-3' and num < projects.number|add:'3' %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ num }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_service_type %}&service_type={{ selected_service_type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                    {{ num }}
+                                </a>
+                            </li>
+                            {% endif %}
+                        {% endfor %}
+                        
+                        {% if projects.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ projects.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if selected_service_type %}&service_type={{ selected_service_type }}{% endif %}{% if search_query %}&search={{ search_query }}{% endif %}">
+                                <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Statistics Banner -->
+<section class="section-padding bg-primary text-white">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-8 mb-4 mb-lg-0">
+                <h2 class="display-5 fw-bold mb-3">Start Your Architectural Journey</h2>
+                <p class="lead mb-0">Let's create something extraordinary together. Contact us to discuss your project.</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <a href="{% url 'inquiry_create' %}" class="btn btn-light btn-lg px-5">
+                    <i class="fas fa-paper-plane me-2"></i>Get Started
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Grid/List View Toggle
+    document.querySelectorAll('.view-options button').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            document.querySelectorAll('.view-options button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            const viewType = this.dataset.view;
+            const container = document.getElementById('projects-container');
+            const projectItems = document.querySelectorAll('.project-item');
+            
+            if (viewType === 'list') {
+                container.classList.add('list-view');
+                container.classList.remove('grid-view');
+                projectItems.forEach(item => {
+                    item.classList.remove('col-lg-4', 'col-md-6');
+                    item.classList.add('col-12');
+                });
+            } else {
+                container.classList.add('grid-view');
+                container.classList.remove('list-view');
+                projectItems.forEach(item => {
+                    item.classList.remove('col-12');
+                    item.classList.add('col-lg-4', 'col-md-6');
+                });
+            }
+        });
+    });
+    
+    // Filter form submission
+    document.getElementById('filter-form').addEventListener('change', function() {
+        // Collect all checked checkboxes
+        const categories = Array.from(this.querySelectorAll('input[name="category"]:checked'))
+            .map(cb => cb.value);
+        const statuses = Array.from(this.querySelectorAll('input[name="status"]:checked'))
+            .map(cb => cb.value);
+        const serviceTypes = Array.from(this.querySelectorAll('input[name="service_type"]:checked'))
+            .map(cb => cb.value);
+        const search = '{{ search_query }}';
+        
+        // Build URL
+        let url = '{% url "projects" %}?';
+        if (categories.length > 0) {
+            url += 'category=' + categories.join(',') + '&';
+        }
+        if (statuses.length > 0) {
+            url += 'status=' + statuses.join(',') + '&';
+        }
+        if (serviceTypes.length > 0) {
+            url += 'service_type=' + serviceTypes.join(',') + '&';
+        }
+        if (search) {
+            url += 'search=' + encodeURIComponent(search) + '&';
+        }
+        
+        // Remove trailing &
+        url = url.replace(/&$/, '');
+        
+        // Submit form
+        window.location.href = url;
+    });
+    
+    // Initialize AOS for project cards
+    AOS.init({
+        duration: 600,
+        once: true,
+        offset: 100,
+        disable: window.innerWidth < 768
+    });
+</script>
+{% endblock %}

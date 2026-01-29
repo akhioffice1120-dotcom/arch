@@ -1,0 +1,278 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}{% if project %}Edit{% else %}Create{% endif %} Project{% endblock %}
+
+{% block page_title %}{% if project %}Edit{% else %}Create{% endif %} Project{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'project_list' %}">Projects</a></li>
+<li class="breadcrumb-item active">{% if project %}Edit{% else %}Create{% endif %}</li>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .image-preview {
+        max-width: 200px;
+        max-height: 150px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Project Details</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="id_title" class="form-label">Project Title *</label>
+                        {{ form.title }}
+                        {% if form.title.errors %}
+                        <div class="text-danger small">{{ form.title.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_slug" class="form-label">Slug *</label>
+                        {{ form.slug }}
+                        <div class="form-text">URL-friendly version of the title</div>
+                        {% if form.slug.errors %}
+                        <div class="text-danger small">{{ form.slug.errors }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_client_name" class="form-label">Client Name *</label>
+                            {{ form.client_name }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_location" class="form-label">Location *</label>
+                            {{ form.location }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_service_type" class="form-label">Service Type</label>
+                            {{ form.service_type }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_categories" class="form-label">Categories</label>
+                            {{ form.categories }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="id_area" class="form-label">Area</label>
+                            {{ form.area }}
+                            <div class="form-text">e.g., 2500 sq ft</div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="id_duration" class="form-label">Duration</label>
+                            {{ form.duration }}
+                            <div class="form-text">e.g., 6 months</div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="id_budget" class="form-label">Budget</label>
+                            {{ form.budget }}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_status" class="form-label">Status *</label>
+                            {{ form.status }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_video_url" class="form-label">Video URL</label>
+                            {{ form.video_url }}
+                            <div class="form-text">YouTube or Vimeo URL</div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_start_date" class="form-label">Start Date</label>
+                            {{ form.start_date }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_completion_date" class="form-label">Completion Date</label>
+                            {{ form.completion_date }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_short_description" class="form-label">Short Description *</label>
+                        {{ form.short_description }}
+                        <div class="form-text">Brief description (max 300 characters)</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_full_description" class="form-label">Full Description *</label>
+                        {{ form.full_description }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_featured_image" class="form-label">Featured Image *</label>
+                        {{ form.featured_image }}
+                        {% if form.instance.featured_image %}
+                        <div class="mt-2">
+                            <img src="{{ form.instance.featured_image.url }}" alt="Current Image" class="image-preview">
+                            <div class="form-text">Current featured image</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if not project %}
+                    <div class="mb-3">
+                        <label for="id_additional_images" class="form-label">Additional Images</label>
+                        {{ form.additional_images }}
+                        <div class="form-text">You can upload multiple images (optional)</div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="form-check">
+                                {{ form.is_featured }}
+                                <label class="form-check-label" for="id_is_featured">
+                                    Featured Project
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <div class="form-check">
+                                {{ form.show_on_homepage }}
+                                <label class="form-check-label" for="id_show_on_homepage">
+                                    Show on Homepage
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6 class="mt-4 mb-3">SEO Settings</h6>
+                    
+                    <div class="mb-3">
+                        <label for="id_meta_title" class="form-label">Meta Title</label>
+                        {{ form.meta_title }}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="id_meta_description" class="form-label">Meta Description</label>
+                        {{ form.meta_description }}
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> Save Project
+                        </button>
+                        <a href="{% url 'project_list' %}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Preview</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    {% if form.instance.featured_image %}
+                    <img src="{{ form.instance.featured_image.url }}" alt="Preview" class="img-fluid rounded mb-3">
+                    {% else %}
+                    <div class="bg-light rounded d-flex align-items-center justify-content-center mb-3" 
+                         style="height: 200px;">
+                        <i class="fas fa-image fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    
+                    <h4>{{ form.instance.title|default:"Project Title" }}</h4>
+                    <p class="text-muted mb-2">{{ form.instance.location|default:"Location" }}</p>
+                    
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <span class="badge 
+                            {% if form.instance.status == 'completed' %}bg-success
+                            {% elif form.instance.status == 'ongoing' %}bg-primary
+                            {% else %}bg-secondary{% endif %}">
+                            {{ form.instance.get_status_display|default:"Status" }}
+                        </span>
+                        
+                        {% if form.instance.is_featured %}
+                        <span class="badge bg-warning">Featured</span>
+                        {% endif %}
+                        
+                        {% if form.instance.show_on_homepage %}
+                        <span class="badge bg-info">Homepage</span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="text-start">
+                        <p><strong>Client:</strong> {{ form.instance.client_name|default:"Client Name" }}</p>
+                        <p><strong>Area:</strong> {{ form.instance.area|default:"N/A" }}</p>
+                        <p><strong>Duration:</strong> {{ form.instance.duration|default:"N/A" }}</p>
+                        <p><strong>Budget:</strong> {{ form.instance.budget|default:"N/A" }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card dashboard-card mt-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Project Images</h6>
+            </div>
+            <div class="card-body">
+                {% if project %}
+                <p>Manage project images after saving.</p>
+                <a href="{% url 'project_images' project.pk %}" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-images me-1"></i> Manage Images
+                </a>
+                {% else %}
+                <p>You can add images after creating the project.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-generate slug from title
+    $('#id_title').on('input', function() {
+        const title = $(this).val();
+        const slug = title.toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+        $('#id_slug').val(slug);
+    });
+    
+    // Initialize Select2 for categories
+    $(document).ready(function() {
+        $('#id_categories').select2({
+            theme: 'bootstrap-5',
+            placeholder: 'Select categories'
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,189 @@
+{% extends 'dashboard/base.html' %}
+{% load static %}
+
+{% block title %}Site Configuration{% endblock %}
+
+{% block page_title %}Site Configuration{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Site Configuration</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">General Settings</h6>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_site_name" class="form-label">Site Name *</label>
+                            {{ form.site_name }}
+                            {% if form.site_name.errors %}
+                            <div class="text-danger small">{{ form.site_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_company_name" class="form-label">Company Name *</label>
+                            {{ form.company_name }}
+                            {% if form.company_name.errors %}
+                            <div class="text-danger small">{{ form.company_name.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_logo" class="form-label">Logo</label>
+                            {{ form.logo }}
+                            {% if form.instance.logo %}
+                            <div class="mt-2">
+                                <img src="{{ form.instance.logo.url }}" alt="Logo" height="60" class="rounded">
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_favicon" class="form-label">Favicon</label>
+                            {{ form.favicon }}
+                            {% if form.instance.favicon %}
+                            <div class="mt-2">
+                                <img src="{{ form.instance.favicon.url }}" alt="Favicon" height="32" class="rounded">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="id_primary_color" class="form-label">Primary Color</label>
+                            {{ form.primary_color }}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="id_secondary_color" class="form-label">Secondary Color</label>
+                            {{ form.secondary_color }}
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="id_accent_color" class="form-label">Accent Color</label>
+                            {{ form.accent_color }}
+                        </div>
+                    </div>
+                    
+                    <h6 class="mt-4 mb-3">Contact Information</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="id_contact_email" class="form-label">Contact Email *</label>
+                            {{ form.contact_email }}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="id_contact_phone" class="form-label">Contact Phone *</label>
+                            {{ form.contact_phone }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="id_contact_address" class="form-label">Contact Address *</label>
+                        {{ form.contact_address }}
+                    </div>
+                    
+                    <h6 class="mt-4 mb-3">Social Media Links</h6>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="id_facebook_url" class="form-label">Facebook URL</label>
+                            {{ form.facebook_url }}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="id_linkedin_url" class="form-label">LinkedIn URL</label>
+                            {{ form.linkedin_url }}
+                        </div>
+                        
+                        <div class="col-md-4 mb-3">
+                            <label for="id_instagram_url" class="form-label">Instagram URL</label>
+                            {{ form.instagram_url }}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="id_google_map_embed" class="form-label">Google Map Embed Code</label>
+                        {{ form.google_map_embed }}
+                        <div class="form-text">Paste the embed code for Google Maps</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-2"></i> Save Settings
+                        </button>
+                        <a href="{% url 'dashboard_home' %}" class="btn btn-outline-secondary">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card dashboard-card">
+            <div class="card-header">
+                <h6 class="card-title mb-0">Preview</h6>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    {% if form.instance.logo %}
+                    <img src="{{ form.instance.logo.url }}" alt="Logo" height="80" class="mb-3">
+                    {% endif %}
+                    <h5>{{ form.instance.site_name|default:"Arch Design & Development" }}</h5>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Contact Details:</strong>
+                    <p class="mb-1">{{ form.instance.contact_email|default:"info@example.com" }}</p>
+                    <p class="mb-1">{{ form.instance.contact_phone|default:"+1 234 567 8900" }}</p>
+                </div>
+                
+                <div class="mb-3">
+                    <strong>Colors:</strong>
+                    <div class="d-flex gap-2 mt-2">
+                        <div style="width: 30px; height: 30px; background-color: {{ form.instance.primary_color|default:'#0F2C59' }}; border-radius: 4px;"></div>
+                        <div style="width: 30px; height: 30px; background-color: {{ form.instance.secondary_color|default:'#1C3C74' }}; border-radius: 4px;"></div>
+                        <div style="width: 30px; height: 30px; background-color: {{ form.instance.accent_color|default:'#D4AF37' }}; border-radius: 4px;"></div>
+                    </div>
+                </div>
+                
+                <div>
+                    <strong>Social Media:</strong>
+                    <div class="d-flex gap-3 mt-2">
+                        {% if form.instance.facebook_url %}
+                        <a href="{{ form.instance.facebook_url }}" target="_blank" class="text-primary">
+                            <i class="fab fa-facebook fa-lg"></i>
+                        </a>
+                        {% endif %}
+                        {% if form.instance.linkedin_url %}
+                        <a href="{{ form.instance.linkedin_url }}" target="_blank" class="text-primary">
+                            <i class="fab fa-linkedin fa-lg"></i>
+                        </a>
+                        {% endif %}
+                        {% if form.instance.instagram_url %}
+                        <a href="{{ form.instance.instagram_url }}" target="_blank" class="text-danger">
+                            <i class="fab fa-instagram fa-lg"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

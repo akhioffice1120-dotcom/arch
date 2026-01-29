@@ -1,0 +1,102 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}3D Designs{% if project %} - {{ project.title }}{% endif %}{% endblock %}
+
+{% block page_title %}3D Designs{% if project %} - {{ project.title }}{% endif %}{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'project_list' %}">Projects</a></li>
+{% if project %}
+<li class="breadcrumb-item"><a href="{% url 'project_edit' project.pk %}">{{ project.title|truncatechars:20 }}</a></li>
+{% endif %}
+<li class="breadcrumb-item active">3D Designs</li>
+{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex gap-2">
+    {% if project %}
+    <a href="{% url 'project_3d_design_create' project.pk %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i> Add 3D Design
+    </a>
+    {% else %}
+    <a href="{% url 'three_d_design_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i> Add 3D Design
+    </a>
+    {% endif %}
+    <a href="{% url 'project_list' %}" class="btn btn-outline-primary">
+        <i class="fas fa-project-diagram me-2"></i> All Projects
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+{% if project %}
+<div class="card dashboard-card mb-4">
+    <div class="card-body">
+        <div class="d-flex align-items-center">
+            {% if project.featured_image %}
+            <img src="{{ project.featured_image.url }}" alt="{{ project.title }}" 
+                 class="rounded me-3" width="80" height="60" style="object-fit: cover;">
+            {% endif %}
+            <div>
+                <h5 class="mb-1">{{ project.title }}</h5>
+                <p class="text-muted mb-0">{{ project.location }} • {{ project.client_name }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card dashboard-card">
+    <div class="card-body p-0">
+        {% if designs %}
+        <div class="row g-3 p-3">
+            {% for design in designs %}
+            <div class="col-md-4">
+                <div class="card h-100">
+                    {% if design.image %}
+                    <img src="{{ design.image.url }}" class="card-img-top" alt="{{ design.title }}" 
+                         style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                         style="height: 200px;">
+                        <i class="fas fa-cube fa-3x text-muted"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h6 class="card-title">{{ design.title }}</h6>
+                        {% if design.description %}
+                        <p class="card-text small text-muted">{{ design.description|truncatechars:80 }}</p>
+                        {% endif %}
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">Order: {{ design.display_order }}</small>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'three_d_design_edit' design.pk %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-cube fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No 3D designs found</h5>
+            <p class="text-muted">{% if project %}Add 3D designs for this project{% else %}Add 3D designs to showcase your work{% endif %}</p>
+            {% if project %}
+            <a href="{% url 'project_3d_design_create' project.pk %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Add First 3D Design
+            </a>
+            {% else %}
+            <a href="{% url 'three_d_design_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Add First 3D Design
+            </a>
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

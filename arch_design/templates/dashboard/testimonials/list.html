@@ -1,0 +1,217 @@
+{% extends 'dashboard/base.html' %}
+
+{% block title %}Testimonials Management{% endblock %}
+
+{% block page_title %}Testimonials{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Testimonials</li>
+{% endblock %}
+
+{% block page_actions %}
+<div class="d-flex gap-2">
+    <a href="{% url 'testimonial_create' %}" class="btn btn-primary">
+        <i class="fas fa-plus me-2"></i> Add Testimonial
+    </a>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="card dashboard-card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <select name="approved" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="yes" {% if approved_filter == 'yes' %}selected{% endif %}>Approved</option>
+                    <option value="no" {% if approved_filter == 'no' %}selected{% endif %}>Pending</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter me-2"></i> Filter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card dashboard-card">
+    <div class="card-body p-0">
+        {% if page_obj %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead>
+                    <tr>
+                        <th width="80">Photo</th>
+                        <th>Client</th>
+                        <th>Project</th>
+                        <th>Rating</th>
+                        <th>Status</th>
+                        <th>Featured</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for testimonial in page_obj %}
+                    <tr>
+                        <td>
+                            {% if testimonial.client_photo %}
+                            <img src="{{ testimonial.client_photo.url }}" alt="{{ testimonial.client_name }}" 
+                                 class="rounded-circle" width="50" height="50" style="object-fit: cover;">
+                            {% else %}
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center" 
+                                 style="width: 50px; height: 50px;">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ testimonial.client_name }}</strong><br>
+                            <small class="text-muted">
+                                {{ testimonial.client_designation|default:"" }}
+                                {% if testimonial.client_company %}{{ testimonial.client_company }}{% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            {% if testimonial.project %}
+                            <a href="{% url 'project_edit' testimonial.project.pk %}" class="text-decoration-none">
+                                {{ testimonial.project.title|truncatechars:20 }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="text-warning">
+                                {% for i in "12345"|make_list %}
+                                    {% if forloop.counter <= testimonial.rating %}
+                                        <i class="fas fa-star"></i>
+                                    {% else %}
+                                        <i class="far fa-star"></i>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td>
+                            {% if testimonial.is_approved %}
+                            <span class="badge bg-success">Approved</span>
+                            {% else %}
+                            <span class="badge bg-warning">Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if testimonial.is_featured %}
+                            <span class="badge bg-warning">Yes</span>
+                            {% else %}
+                            <span class="badge bg-secondary">No</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ testimonial.created_at|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'testimonial_edit' testimonial.pk %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <a href="{% url 'testimonial_toggle_approve' testimonial.pk %}" class="btn btn-outline-success">
+                                    <i class="fas fa-check"></i>
+                                </a>
+                                <button type="button" class="btn btn-outline-warning toggle-featured" 
+                                        data-model="testimonial" data-pk="{{ testimonial.pk }}">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        {% if page_obj.has_other_pages %}
+        <div class="card-footer">
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% if approved_filter %}&approved={{ approved_filter }}{% endif %}">
+                            First
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if approved_filter %}&approved={{ approved_filter }}{% endif %}">
+                            Previous
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <li class="page-item active">
+                            <span class="page-link">{{ num }}</span>
+                        </li>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ num }}{% if approved_filter %}&approved={{ approved_filter }}{% endif %}">
+                                {{ num }}
+                            </a>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if approved_filter %}&approved={{ approved_filter }}{% endif %}">
+                            Next
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if approved_filter %}&approved={{ approved_filter }}{% endif %}">
+                            Last
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+        {% endif %}
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-comments fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No testimonials found</h5>
+            <p class="text-muted">Add client testimonials to build trust</p>
+            <a href="{% url 'testimonial_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Add First Testimonial
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Toggle featured status
+    $('.toggle-featured').on('click', function() {
+        const btn = $(this);
+        const model = btn.data('model');
+        const pk = btn.data('pk');
+        
+        $.ajax({
+            url: `/dashboard/ajax/toggle-featured/${model}/${pk}/`,
+            type: 'POST',
+            success: function(response) {
+                if (response.success) {
+                    const badge = btn.closest('tr').find('.badge.bg-warning, .badge.bg-secondary');
+                    if (response.is_featured) {
+                        badge.removeClass('bg-secondary').addClass('bg-warning').text('Yes');
+                    } else {
+                        badge.removeClass('bg-warning').addClass('bg-secondary').text('No');
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

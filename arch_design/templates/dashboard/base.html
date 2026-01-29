@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - {% block title %}Arch Design & Development{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Select2 -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    
+    <!-- CKEditor 5 -->
+    <script src="https://cdn.ckeditor.com/ckeditor5/36.0.1/classic/ckeditor.js"></script>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Dashboard CSS -->
+    <style>
+        :root {
+            --primary-color: #0F2C59;
+            --secondary-color: #1C3C74;
+            --accent-color: #D4AF37;
+            --sidebar-width: 250px;
+            --header-height: 60px;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+        }
+        
+        #wrapper {
+            display: flex;
+        }
+        
+        /* Sidebar */
+        #sidebar {
+            width: var(--sidebar-width);
+            min-height: 100vh;
+            background: linear-gradient(180deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            position: fixed;
+            transition: all 0.3s;
+            z-index: 1000;
+            overflow-y: auto; /* scroll support */
+        }
+        @media (max-width: 768px) {
+            #sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100vh;
+                transform: translateX(-100%); /* hidden by default */
+            }
+        
+            #sidebar.active {
+                transform: translateX(0); /* slide in */
+                box-shadow: 4px 0 15px rgba(0,0,0,0.2);
+            }
+        
+            #content {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
+        
+        #sidebar .sidebar-header {
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        #sidebar .sidebar-header h3 {
+            font-size: 1.2rem;
+            margin: 0;
+            font-weight: 600;
+        }
+        
+        #sidebar ul.components {
+            padding: 20px 0;
+        }
+        
+        #sidebar ul li {
+            padding: 0;
+        }
+        
+        #sidebar ul li a {
+            padding: 12px 20px;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            display: block;
+            border-left: 3px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        #sidebar ul li a:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            border-left-color: var(--accent-color);
+        }
+        
+        #sidebar ul li.active > a {
+            color: white;
+            background: rgba(255, 255, 255, 0.15);
+            border-left-color: var(--accent-color);
+        }
+        
+        #sidebar ul li a i {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        #sidebar .dropdown-toggle::after {
+            float: right;
+            margin-top: 8px;
+        }
+        
+        /* Submenu */
+        #sidebar ul ul a {
+            padding-left: 40px;
+            font-size: 0.9em;
+        }
+        
+        /* Main Content */
+        #content {
+            width: calc(100% - var(--sidebar-width));
+            margin-left: var(--sidebar-width);
+            transition: all 0.3s;
+        }
+        
+        /* Navbar */
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            height: var(--header-height);
+            padding: 0 20px;
+        }
+        
+        .navbar-brand {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+        
+        .user-dropdown img {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+        }
+        
+        /* Cards */
+        .dashboard-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            color: white;
+        }
+        
+        .stat-card .card-icon {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+        
+        /* Tables */
+        .table th {
+            font-weight: 600;
+            color: var(--primary-color);
+            border-top: none;
+        }
+        
+        .table tbody tr:hover {
+            background-color: rgba(15, 44, 89, 0.03);
+        }
+        
+        /* Badges */
+        .badge {
+            padding: 6px 12px;
+            font-weight: 500;
+        }
+        
+        /* Buttons */
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            padding: 8px 20px;
+            font-weight: 500;
+        }
+        
+        .btn-primary:hover {
+            background: var(--secondary-color);
+        }
+        
+        .btn-warning {
+            background: var(--accent-color);
+            color: #000;
+            border: none;
+        }
+        
+        /* Form Controls */
+        .form-control, .form-select {
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+            padding: 10px 15px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(15, 44, 89, 0.1);
+        }
+        
+        /* Toggle Switch */
+        .form-check-input:checked {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        /* Pagination */
+        .page-link {
+            color: var(--primary-color);
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        /* Alert Messages */
+        .alert {
+            border-radius: 8px;
+            border: none;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            #sidebar {
+                margin-left: -var(--sidebar-width);
+            }
+            
+            #sidebar.active {
+                margin-left: 0;
+            }
+            
+            #content {
+                width: 100%;
+                margin-left: 0;
+            }
+            
+            #content.active {
+                width: calc(100% - var(--sidebar-width));
+                margin-left: var(--sidebar-width);
+            }
+        }
+        
+        /* Image Gallery */
+        .image-thumb {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        
+        .image-thumb:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Status Badges */
+        .badge-new { background: #0d6efd; }
+        .badge-contact { background: #6c757d; }
+        .badge-quoted { background: #ffc107; color: #000; }
+        .badge-follow { background: #fd7e14; }
+        .badge-converted { background: #198754; }
+        .badge-rejected { background: #dc3545; }
+        
+        .badge-draft { background: #6c757d; }
+        .badge-published { background: #198754; }
+        
+        /* Project Status */
+        .badge-completed { background: #198754; }
+        .badge-ongoing { background: #0d6efd; }
+        .badge-upcoming { background: #6c757d; }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h3>
+                    <i class="fas fa-columns"></i> Dashboard
+                </h3>
+            </div>
+            
+            <ul class="list-unstyled components">
+                <li class="{% if request.resolver_match.url_name == 'dashboard_home' %}active{% endif %}">
+                    <a href="{% url 'dashboard_home' %}">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="#siteSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="fas fa-cog"></i> Site Configuration
+                    </a>
+                    <ul class="collapse list-unstyled" id="siteSubmenu">
+                        <li>
+                            <a href="{% url 'site_configuration' %}">General Settings</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'slider_list' %}">Homepage Sliders</a>
+                        </li>
+                    </ul>
+                </li>
+                
+                <li>
+                    <a href="#servicesSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="fas fa-concierge-bell"></i> Services
+                    </a>
+                    <ul class="collapse list-unstyled" id="servicesSubmenu">
+                        <li>
+                            <a href="{% url 'service_category_list' %}">Categories</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'service_list' %}">All Services</a>
+                        </li>
+                    </ul>
+                </li>
+                
+                <li>
+                    <a href="#projectsSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="fas fa-project-diagram"></i> Projects
+                    </a>
+                    <ul class="collapse list-unstyled" id="projectsSubmenu">
+                        <li>
+                            <a href="{% url 'project_category_list' %}">Categories</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'project_list' %}">All Projects</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'three_d_design_list' %}">3D Designs</a>
+                        </li>
+                    </ul>
+                </li>
+                
+                <li>
+                    <a href="#gallerySubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="fas fa-images"></i> Gallery
+                    </a>
+                    <ul class="collapse list-unstyled" id="gallerySubmenu">
+                        <li>
+                            <a href="{% url 'gallery_category_list' %}">Categories</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'gallery_image_list' %}">All Images</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'gallery_bulk_upload' %}">Bulk Upload</a>
+                        </li>
+                    </ul>
+                </li>
+                
+                <li>
+                    <a href="{% url 'testimonial_list' %}">
+                        <i class="fas fa-comments"></i> Testimonials
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{% url 'team_list' %}">
+                        <i class="fas fa-users"></i> Team
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="#blogSubmenu" data-bs-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                        <i class="fas fa-blog"></i> Blog
+                    </a>
+                    <ul class="collapse list-unstyled" id="blogSubmenu">
+                        <li>
+                            <a href="{% url 'blog_category_list' %}">Categories</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'blog_tag_list' %}">Tags</a>
+                        </li>
+                        <li>
+                            <a href="{% url 'blog_post_list' %}">All Posts</a>
+                        </li>
+                    </ul>
+                </li>
+                
+                <li>
+                    <a href="{% url 'company_info_list' %}">
+                        <i class="fas fa-building"></i> Company Info
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{% url 'inquiry_list' %}">
+                        <i class="fas fa-question-circle"></i> Inquiries
+                        {% if stats.new_inquiries %}
+                        <span class="badge bg-danger float-end">{{ stats.new_inquiries }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{% url 'contact_message_list' %}">
+                        <i class="fas fa-envelope"></i> Messages
+                        {% if stats.pending_contact_messages %}
+                        <span class="badge bg-danger float-end">{{ stats.pending_contact_messages }}</span>
+                        {% endif %}
+                    </a>
+                </li>
+                
+                <li>
+                    <a href="{% url 'dashboard_settings' %}">
+                        <i class="fas fa-user-cog"></i> Settings
+                    </a>
+                </li>
+            </ul>
+            
+            <div class="mt-auto p-3">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'home' %}" target="_blank" class="btn btn-outline-light btn-sm">
+                        <i class="fas fa-external-link-alt me-2"></i> View Site
+                    </a>
+                    <a href="{% url 'dashboard_logout' %}" class="btn btn-warning btn-sm">
+                        <i class="fas fa-sign-out-alt me-2"></i> Logout
+                    </a>
+                </div>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <div id="content">
+            <!-- Navbar -->
+            <nav class="navbar navbar-expand-lg">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-outline-primary d-md-none">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    
+                    <div class="ms-auto">
+                        <div class="dropdown">
+                            <button class="btn btn-link dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                <div class="d-flex align-items-center">
+                                    <img src="https://ui-avatars.com/api/?name={{ request.user.get_full_name|default:request.user.username }}&background=0F2C59&color=fff" alt="User" class="me-2">
+                                    <div class="text-start">
+                                        <small class="text-muted d-block">Welcome</small>
+                                        <strong>{{ request.user.get_full_name|default:request.user.username }}</strong>
+                                    </div>
+                                </div>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="{% url 'dashboard_settings' %}"><i class="fas fa-cog me-2"></i> Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{% url 'dashboard_logout' %}"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+            
+            <!-- Page Content -->
+            <div class="container-fluid p-4">
+                <!-- Messages -->
+                {% if messages %}
+                <div class="messages mb-4">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+                
+                <!-- Page Header -->
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="h4 mb-1">{% block page_title %}{% endblock %}</h2>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-0">
+                                <li class="breadcrumb-item"><a href="{% url 'dashboard_home' %}">Dashboard</a></li>
+                                {% block breadcrumb %}{% endblock %}
+                            </ol>
+                        </nav>
+                    </div>
+                    <div>
+                        {% block page_actions %}{% endblock %}
+                    </div>
+                </div>
+                
+                <!-- Main Content -->
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    
+    <!-- Dashboard Script -->
+    <script>
+        // Sidebar Toggle
+        $('#sidebarCollapse').on('click', function (e) {
+            e.stopPropagation();
+            $('#sidebar').toggleClass('active');
+        });
+        
+        // clicking outside closes sidebar on mobile
+        $(document).on('click', function (e) {
+            if ($(window).width() <= 768) {
+                if (!$('#sidebar').is(e.target) && $('#sidebar').has(e.target).length === 0) {
+                    $('#sidebar').removeClass('active');
+                }
+            }
+        });
+        
+        
+        // Initialize Select2
+        $(document).ready(function() {
+            $('.select2').select2({
+                theme: 'bootstrap-5'
+            });
+        });
+        
+        // Initialize CKEditor
+        document.addEventListener('DOMContentLoaded', function() {
+            const editors = document.querySelectorAll('.ckeditor');
+            editors.forEach(editor => {
+                ClassicEditor
+                    .create(editor)
+                    .catch(error => {
+                        console.error(error);
+                    });
+            });
+        });
+        
+        // Auto-dismiss alerts
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 5000);
+        
+        // Confirm before delete
+        function confirmDelete(message = "Are you sure you want to delete this item?") {
+            return confirm(message);
+        }
+        
+        // AJAX setup
+        $.ajaxSetup({
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        });
+        
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,577 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Gallery | Arch Design & Development{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Gallery Page Styles */
+    .gallery-hero {
+        background: linear-gradient(135deg, rgba(15, 44, 89, 0.9), rgba(28, 60, 116, 0.9)),
+                    url('{% static "images/gallery-hero.jpg" %}');
+        background-size: cover;
+        background-position: center;
+        min-height: 50vh;
+        display: flex;
+        align-items: center;
+        color: white;
+    }
+    
+    /* Gallery Filter */
+    .gallery-filter {
+        background: white;
+        border-radius: var(--border-radius);
+        padding: 20px;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 30px;
+    }
+    
+    .filter-btn {
+        padding: 10px 25px;
+        border: 2px solid var(--gray-light);
+        background: transparent;
+        border-radius: 50px;
+        margin: 5px;
+        transition: var(--transition);
+        font-weight: 500;
+    }
+    
+    .filter-btn:hover,
+    .filter-btn.active {
+        background: var(--primary-color);
+        color: white;
+        border-color: var(--primary-color);
+    }
+    
+    /* Gallery Grid */
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+        margin-bottom: 50px;
+    }
+    
+    .gallery-item {
+        position: relative;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        height: 300px;
+        cursor: pointer;
+        box-shadow: var(--shadow-md);
+        transition: var(--transition);
+    }
+    
+    .gallery-item:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .gallery-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .gallery-item:hover img {
+        transform: scale(1.1);
+    }
+    
+    .gallery-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(15, 44, 89, 0.9), transparent);
+        color: white;
+        padding: 20px;
+        transform: translateY(20px);
+        opacity: 0;
+        transition: var(--transition);
+    }
+    
+    .gallery-item:hover .gallery-overlay {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    
+    /* Category Cards */
+    .category-card {
+        position: relative;
+        border-radius: var(--border-radius);
+        overflow: hidden;
+        height: 400px;
+        margin-bottom: 30px;
+        box-shadow: var(--shadow-lg);
+        transition: var(--transition);
+    }
+    
+    .category-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .category-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.8s ease;
+    }
+    
+    .category-card:hover img {
+        transform: scale(1.1);
+    }
+    
+    .category-content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(15, 44, 89, 0.95), transparent);
+        color: white;
+        padding: 30px;
+    }
+    
+    .category-count {
+        display: inline-block;
+        background: var(--accent-color);
+        color: var(--dark-color);
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        margin-top: 10px;
+    }
+    
+    /* Lightbox Modal */
+    .lightbox-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.95);
+        z-index: 9999;
+        justify-content: center;
+        align-items: center;
+    }
+    
+    .lightbox-content {
+        max-width: 90%;
+        max-height: 90%;
+    }
+    
+    .lightbox-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: none;
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: var(--transition);
+    }
+    
+    .lightbox-nav:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+    
+    .lightbox-prev {
+        left: 20px;
+    }
+    
+    .lightbox-next {
+        right: 20px;
+    }
+    
+    .lightbox-close {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        border: none;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 1.5rem;
+    }
+    
+    .lightbox-info {
+        position: absolute;
+        bottom: 20px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        color: white;
+        padding: 20px;
+    }
+    
+    /* Grid Layouts */
+    .grid-col-2 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .grid-col-3 {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    .grid-col-4 {
+        grid-template-columns: repeat(4, 1fr);
+    }
+    
+    /* Responsive */
+    @media (max-width: 1200px) {
+        .gallery-grid {
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        }
+        
+        .grid-col-4 {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .gallery-grid {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        }
+        
+        .grid-col-3,
+        .grid-col-4 {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .category-card {
+            height: 300px;
+        }
+    }
+    
+    @media (max-width: 576px) {
+        .gallery-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .grid-col-2,
+        .grid-col-3,
+        .grid-col-4 {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="gallery-hero section-padding">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-4">Design Gallery</h1>
+                <p class="lead mb-4">Explore our collection of architectural masterpieces, interior designs, and project visualizations.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Gallery Filter -->
+<section class="section-padding">
+    <div class="container">
+        <div class="gallery-filter text-center">
+            <button class="filter-btn active" data-filter="all">All Images</button>
+            {% for category in categories %}
+            <button class="filter-btn" data-filter="{{ category.slug }}">{{ category.name }}</button>
+            {% endfor %}
+            <button class="filter-btn" data-filter="featured">Featured</button>
+        </div>
+        
+        <!-- Featured Categories -->
+        <div class="mb-5">
+            <h3 class="fw-bold mb-4 text-primary">Featured Categories</h3>
+            <div class="row">
+                {% for item in categories_with_images %}
+                <div class="col-lg-4 col-md-6">
+                    <a href="{% url 'gallery_category' item.category.slug %}" class="text-decoration-none">
+                        <div class="category-card">
+                            {% if item.images.first %}
+                            <img src="{{ item.images.first.image.url }}" alt="{{ item.category.name }}">
+                            {% else %}
+                            <img src="{% static 'images/gallery-default.jpg' %}" alt="{{ item.category.name }}">
+                            {% endif %}
+                            <div class="category-content">
+                                <h4 class="fw-bold mb-2">{{ item.category.name }}</h4>
+                                <p class="mb-2">{{ item.category.description|truncatechars:100 }}</p>
+                                <span class="category-count">{{ item.images.count }} Images</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                {% empty %}
+                <div class="col-lg-4 col-md-6">
+                    <div class="category-card">
+                        <img src="{% static 'images/gallery-1.jpg' %}" alt="Residential">
+                        <div class="category-content">
+                            <h4 class="fw-bold mb-2">Residential Projects</h4>
+                            <span class="category-count">45 Images</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="category-card">
+                        <img src="{% static 'images/gallery-2.jpg' %}" alt="Commercial">
+                        <div class="category-content">
+                            <h4 class="fw-bold mb-2">Commercial Projects</h4>
+                            <span class="category-count">32 Images</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-6">
+                    <div class="category-card">
+                        <img src="{% static 'images/gallery-3.jpg' %}" alt="Interior">
+                        <div class="category-content">
+                            <h4 class="fw-bold mb-2">Interior Design</h4>
+                            <span class="category-count">28 Images</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Featured Images -->
+        <div class="mb-5">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="fw-bold text-primary">Featured Images</h3>
+                <div class="view-controls">
+                    <button class="btn btn-outline-primary btn-sm" data-grid="2">
+                        <i class="fas fa-th-large"></i>
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm" data-grid="3">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="btn btn-outline-primary btn-sm active" data-grid="4">
+                        <i class="fas fa-border-all"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="gallery-grid grid-col-4" id="gallery-container">
+                {% for image in featured_images %}
+                <div class="gallery-item" data-category="{{ image.category.slug }}">
+                    <img src="{{ image.image.url }}" 
+                         alt="{{ image.title|default:image.category.name }}"
+                         data-index="{{ forloop.counter0 }}">
+                    <div class="gallery-overlay">
+                        <h5 class="fw-bold mb-2">{{ image.title|default:image.category.name }}</h5>
+                        <p class="mb-0">{{ image.description|truncatechars:80 }}</p>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-5">
+                    <div class="empty-state-icon mx-auto mb-4">
+                        <i class="fas fa-images"></i>
+                    </div>
+                    <h3 class="fw-bold mb-3">No Images Available</h3>
+                    <p class="text-muted mb-4">Our gallery is being updated. Please check back soon.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- All Categories -->
+        <div>
+            <h3 class="fw-bold mb-4 text-primary">All Categories</h3>
+            <div class="row">
+                {% for category in categories %}
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <a href="{% url 'gallery_category' category.slug %}" 
+                       class="card border-0 shadow-hover text-decoration-none h-100">
+                        {% if category.featured_image %}
+                        <img src="{{ category.featured_image.url }}" 
+                             class="card-img-top" 
+                             alt="{{ category.name }}"
+                             height="150">
+                        {% else %}
+                        <div class="bg-light d-flex align-items-center justify-content-center" 
+                             style="height: 150px;">
+                            <i class="fas fa-folder fa-3x text-primary"></i>
+                        </div>
+                        {% endif %}
+                        <div class="card-body text-center">
+                            <h5 class="fw-bold mb-2">{{ category.name }}</h5>
+                            <p class="text-muted mb-0">{{ category.images.count }} images</p>
+                        </div>
+                    </a>
+                </div>
+                {% empty %}
+                <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+                    <div class="card border-0 shadow-hover h-100">
+                        <div class="bg-light d-flex align-items-center justify-content-center" 
+                             style="height: 150px;">
+                            <i class="fas fa-folder fa-3x text-primary"></i>
+                        </div>
+                        <div class="card-body text-center">
+                            <h5 class="fw-bold mb-2">Residential</h5>
+                            <p class="text-muted mb-0">45 images</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Lightbox Modal -->
+<div class="lightbox-modal">
+    <button class="lightbox-close">&times;</button>
+    <button class="lightbox-nav lightbox-prev">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <button class="lightbox-nav lightbox-next">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+    <img class="lightbox-content" id="lightbox-image">
+    <div class="lightbox-info">
+        <h4 id="lightbox-title"></h4>
+        <p id="lightbox-description" class="mb-0"></p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Filter functionality
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Update active button
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            const filter = btn.dataset.filter;
+            
+            // Filter items
+            galleryItems.forEach(item => {
+                if (filter === 'all' || item.dataset.category === filter) {
+                    item.style.display = 'block';
+                    setTimeout(() => {
+                        item.style.opacity = '1';
+                        item.style.transform = 'scale(1)';
+                    }, 100);
+                } else {
+                    item.style.opacity = '0';
+                    item.style.transform = 'scale(0.8)';
+                    setTimeout(() => {
+                        item.style.display = 'none';
+                    }, 300);
+                }
+            });
+        });
+    });
+    
+    // Grid layout controls
+    const viewControls = document.querySelectorAll('.view-controls button');
+    const galleryContainer = document.getElementById('gallery-container');
+    
+    viewControls.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Update active button
+            viewControls.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Update grid layout
+            const gridCols = btn.dataset.grid;
+            galleryContainer.classList.remove('grid-col-2', 'grid-col-3', 'grid-col-4');
+            galleryContainer.classList.add(`grid-col-${gridCols}`);
+        });
+    });
+    
+    // Lightbox functionality
+    const lightboxModal = document.querySelector('.lightbox-modal');
+    const lightboxImage = document.getElementById('lightbox-image');
+    const lightboxTitle = document.getElementById('lightbox-title');
+    const lightboxDescription = document.getElementById('lightbox-description');
+    const lightboxClose = document.querySelector('.lightbox-close');
+    const lightboxPrev = document.querySelector('.lightbox-prev');
+    const lightboxNext = document.querySelector('.lightbox-next');
+    
+    let currentImageIndex = 0;
+    const galleryImages = Array.from(galleryItems).map(item => ({
+        src: item.querySelector('img').src,
+        title: item.querySelector('h5')?.textContent || '',
+        description: item.querySelector('p')?.textContent || ''
+    }));
+    
+    // Open lightbox when clicking on gallery item
+    galleryItems.forEach((item, index) => {
+        item.addEventListener('click', () => {
+            currentImageIndex = index;
+            updateLightbox();
+            lightboxModal.style.display = 'flex';
+        });
+    });
+    
+    // Update lightbox content
+    function updateLightbox() {
+        const image = galleryImages[currentImageIndex];
+        lightboxImage.src = image.src;
+        lightboxTitle.textContent = image.title;
+        lightboxDescription.textContent = image.description;
+    }
+    
+    // Lightbox navigation
+    lightboxClose.addEventListener('click', () => {
+        lightboxModal.style.display = 'none';
+    });
+    
+    lightboxPrev.addEventListener('click', () => {
+        currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+        updateLightbox();
+    });
+    
+    lightboxNext.addEventListener('click', () => {
+        currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+        updateLightbox();
+    });
+    
+    // Close lightbox on click outside
+    lightboxModal.addEventListener('click', (e) => {
+        if (e.target === lightboxModal) {
+            lightboxModal.style.display = 'none';
+        }
+    });
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (lightboxModal.style.display === 'flex') {
+            if (e.key === 'Escape') {
+                lightboxModal.style.display = 'none';
+            } else if (e.key === 'ArrowLeft') {
+                lightboxPrev.click();
+            } else if (e.key === 'ArrowRight') {
+                lightboxNext.click();
+            }
+        }
+    });
+    
+    // Initialize AOS for animations
+    AOS.init({
+        duration: 600,
+        once: true,
+        offset: 100
+    });
+</script>
+{% endblock %}
