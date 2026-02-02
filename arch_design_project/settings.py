@@ -152,8 +152,8 @@ STATICFILES_DIRS = [BASE_DIR / "arch_design" / "static"]
 # WhiteNoise optimized static
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
-MEDIA_URL = "/media/"
-MEDIA_ROOT = BASE_DIR / "media"
+# MEDIA_URL = "/media/"
+# MEDIA_ROOT = BASE_DIR / "media"
 
 
 # -------------------------------------------------
@@ -242,6 +242,7 @@ LOGGING = {
     },
 }
 
+# ---- Media storage (Cloudinary) ----
 INSTALLED_APPS += ["cloudinary", "cloudinary_storage"]
 
 CLOUDINARY_STORAGE = {
@@ -251,4 +252,5 @@ CLOUDINARY_STORAGE = {
 }
 
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
-MEDIA_URL = "/media/"
+
+# MEDIA_URL = "/media/"
