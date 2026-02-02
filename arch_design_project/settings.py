@@ -245,9 +245,9 @@ LOGGING = {
 INSTALLED_APPS += ["cloudinary", "cloudinary_storage"]
 
 CLOUDINARY_STORAGE = {
-    "CLOUD_NAME": config("CLOUDINARY_CLOUD_NAME"),
-    "API_KEY": config("CLOUDINARY_API_KEY"),
-    "API_SECRET": config("CLOUDINARY_API_SECRET"),
+    "CLOUD_NAME": config("ddepvpcrr"),
+    "API_KEY": config("434792772343894"),
+    "API_SECRET": config("WJQvEJ5rgULEJ_jLMerq4-HtE9w"),
 }
 
 DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
