@@ -27,10 +27,8 @@
     <!-- <meta property="og:image" content="{% static 'images/og-image.jpg' %}"> -->
     <meta property="og:url" content="{{ request.build_absolute_uri }}" />
 
-    <title>
-      {% block title %}Arch Design & Development | Premium Architecture Studio{%
-      endblock %}
-    </title>
+    <!-- prettier-ignore -->
+    <title>{% block title %}Arch Design & Development | Premium Architecture Studio{% endblock %}</title>
 
     <!-- Favicon -->
     <link
@@ -496,6 +494,10 @@
         .btn-warning {
           width: 100%;
           margin-top: 0.5rem;
+        }
+
+        main {
+          padding-top: 40px;
         }
       }
 

@@ -1,0 +1,2 @@
+# Ignore Django templates from being formatted by Prettier, which breaks template tags
+**/templates/**/*.html
